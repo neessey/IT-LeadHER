@@ -1,0 +1,6 @@
+{
+  "name": "IT-LeadHER",
+  "description": "Plateforme communautaire et d'apprentissage pour l'autonomisation et le leadership des femmes dans la tech",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
