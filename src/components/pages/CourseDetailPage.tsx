@@ -24,8 +24,6 @@ import {
   Maximize,
   Minimize
 } from 'lucide-react';
-import { Certificate } from '@/src/types';
-import { downloadCertificate } from '@/src/utils/CertificateGenerator';
 
 export const CourseDetailPage: React.FC = () => {
   const {
@@ -61,25 +59,7 @@ export const CourseDetailPage: React.FC = () => {
   const cert = currentUser
     ? certificates.find(c => c.userId === currentUser.id && c.courseId === course.id)
     : null;
-const [isDownloading, setIsDownloading] = useState<string | null>(null);
 
-const handleDownloadCertificate = async (cert: any) => {
-  if (isDownloading) return;
-  setIsDownloading(cert.id);
-  
-  try {
-    const success = await downloadCertificate(cert);
-    if (success) {
-      showToast('Certificat téléchargé avec succès !', 'success');
-    } else {
-      showToast('Erreur lors du téléchargement.', 'error');
-    }
-  } catch (error) {
-    showToast('Erreur lors du téléchargement.', 'error');
-  } finally {
-    setIsDownloading(null);
-  }
-};
   // Écouter les messages de l'iframe YouTube pour suivre la progression
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -171,8 +151,6 @@ const handleDownloadCertificate = async (cert: any) => {
 
   const progressStats = getProgressStats();
   const allQuizzesDone = progressStats.totalQuiz > 0 && progressStats.answered === progressStats.totalQuiz;
-
- 
 
   return (
     <div className="min-h-screen bg-white pb-16">
@@ -596,7 +574,3 @@ const handleDownloadCertificate = async (cert: any) => {
     </div>
   );
 };
-
-function showToast(arg0: string, arg1: string) {
-  throw new Error('Function not implemented.');
-}

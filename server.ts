@@ -98,24 +98,19 @@ app.get('/api/verify-certificate/:code', (req, res) => {
   });
 });
 
-async function start() {
+async function setup() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`IT-LeadHER Platform Server running on http://0.0.0.0:${PORT}`);
-  });
+    app.use(vite.middlewares);
+  }
 }
+
+setup();
+
+export default app;
 
 start();

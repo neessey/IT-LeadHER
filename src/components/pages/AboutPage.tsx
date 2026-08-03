@@ -186,7 +186,7 @@ export const AboutPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 font-medium">Création</div>
-                    <div className="text-lg font-extrabold text-gray-900">2025</div>
+                    <div className="text-lg font-extrabold text-gray-900">2026</div>
                   </div>
                 </div>
               </div>

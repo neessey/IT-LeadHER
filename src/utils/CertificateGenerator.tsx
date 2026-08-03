@@ -33,7 +33,7 @@ export const generateCertificateHTML = (cert: CertificateData): string => {
 
       <!-- Title -->
       <h1 style="font-size:28px;font-weight:900;color:#212B36;margin-bottom:4px;font-family:Georgia,serif;">
-        CERTIFICAT DE RÉUSSITE
+        CERTIFICAT DE PARTICIPATION
       </h1>
       <p style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;">
         Ce certificat est décerné avec les félicitations du jury à :

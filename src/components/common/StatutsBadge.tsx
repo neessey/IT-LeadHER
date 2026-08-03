@@ -6,9 +6,9 @@ const StatusBadge = ({ status }: { status: string }) => {
   };
 
   const labels = {
-    approved: "✓ Validé",
-    contacted: "💬 Contacté",
-    pending: "🆕 Nouveau",
+    approved:  Validé",
+    contacted: "Contacté",
+    pending: "Nouveau",
   };
 
   return (
