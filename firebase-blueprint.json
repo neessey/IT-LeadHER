@@ -1,0 +1,118 @@
+{
+  "collections": {
+    "users": {
+      "description": "Registered platform users and profiles",
+      "fields": {
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string",
+        "role": "string",
+        "avatar": "string",
+        "country": "string",
+        "technicalLevel": "string",
+        "domainInterest": "string",
+        "status": "string",
+        "createdAt": "string"
+      }
+    },
+    "courses": {
+      "description": "Courses catalog",
+      "fields": {
+        "title": "string",
+        "description": "string",
+        "fullDescription": "string",
+        "category": "string",
+        "categoryLabel": "string",
+        "level": "string",
+        "duration": "string",
+        "modulesCount": "number",
+        "thumbnail": "string",
+        "instructorId": "string",
+        "instructorName": "string",
+        "instructorRole": "string",
+        "instructorAvatar": "string",
+        "rating": "number",
+        "enrolledCount": "number",
+        "skillsAcquired": "array",
+        "lessons": "array"
+      }
+    },
+    "events": {
+      "description": "Community events and bootcamps",
+      "fields": {
+        "title": "string",
+        "description": "string",
+        "type": "string",
+        "typeLabel": "string",
+        "date": "string",
+        "time": "string",
+        "location": "string",
+        "isOnline": "boolean",
+        "image": "string",
+        "registeredCount": "number",
+        "maxCapacity": "number",
+        "speakers": "array"
+      }
+    },
+    "articles": {
+      "description": "Blog and leadership articles",
+      "fields": {
+        "title": "string",
+        "slug": "string",
+        "summary": "string",
+        "content": "string",
+        "category": "string",
+        "cover": "string",
+        "authorName": "string",
+        "authorRole": "string",
+        "authorAvatar": "string",
+        "readTime": "string",
+        "createdAt": "string",
+        "tags": "array",
+        "comments": "array"
+      }
+    },
+    "mentorshipRequests": {
+      "description": "Applications for mentorship",
+      "fields": {
+        "userId": "string",
+        "userName": "string",
+        "userEmail": "string",
+        "domainInterest": "string",
+        "message": "string",
+        "status": "string",
+        "mentorName": "string",
+        "requestedAt": "string"
+      }
+    },
+    "partnerInquiries": {
+      "description": "Corporate partnership applications",
+      "fields": {
+        "companyName": "string",
+        "contactName": "string",
+        "email": "string",
+        "partnerType": "string",
+        "message": "string",
+        "status": "string",
+        "submittedAt": "string"
+      }
+    },
+    "settings": {
+      "description": "Global platform settings",
+      "fields": {
+        "announcementBanner": "string"
+      }
+    },
+    "certificates": {
+      "description": "Issued student certificates",
+      "fields": {
+        "userId": "string",
+        "userName": "string",
+        "courseId": "string",
+        "courseTitle": "string",
+        "issuedAt": "string",
+        "certificateCode": "string"
+      }
+    }
+  }
+}
