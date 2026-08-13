@@ -26,14 +26,9 @@ export default async function handler(req: any, res: any) {
       apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `
+    const interaction = await ai.interactions.create({
+      model: "gemini-3.6-flash",
+      input: `
 Tu es l'assistant IA officiel de IT-LeadHER.
 
 Réponds toujours en ${language}.
@@ -43,16 +38,13 @@ ${context}
 
 Question :
 ${prompt}
-              `,
-            },
-          ],
-        },
-      ],
+      `,
     });
 
     return res.status(200).json({
-      reply: response.text,
+      reply: interaction.output_text,
     });
+
   } catch (error: any) {
     console.error("AI ASSISTANT ERROR:", error);
 
