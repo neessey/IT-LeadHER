@@ -24,6 +24,7 @@ import {
   Maximize,
   Minimize
 } from 'lucide-react';
+import { Certificate } from '@/src/types';
 
 export const CourseDetailPage: React.FC = () => {
   const {
@@ -45,13 +46,19 @@ export const CourseDetailPage: React.FC = () => {
   const [videoProgress, setVideoProgress] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const videoRef = useRef<HTMLIFrameElement>(null);
+  const videoElRef = useRef<HTMLVideoElement>(null);
 
   const enrollment = currentUser
     ? enrollments.find(e => e.userId === currentUser.id && e.courseId === course.id)
     : null;
 
   const currentLesson = course.lessons[activeLessonIndex] || course.lessons[0];
+
+  // Vidéo hébergée (Cloudinary/téléphone) => lecteur natif avec vraie progression
+  const isNativeVideo = (currentLesson as any)?.videoSource === 'local';
+
   const isLessonCompleted = enrollment?.completedLessonIds.includes(currentLesson?.id);
   const completedCount = enrollment?.completedLessonIds.length || 0;
   const totalLessons = course.lessons.length;
@@ -83,8 +90,10 @@ export const CourseDetailPage: React.FC = () => {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Simuler la progression de la vidéo (car YouTube ne donne pas la progression facilement)
+  // Simuler la progression pour YouTube uniquement (l'API ne donne pas la progression facilement).
+  // Pour une vidéo native (Cloudinary/téléphone), la vraie progression vient de onTimeUpdate.
   useEffect(() => {
+    if (isNativeVideo) return;
     let interval: NodeJS.Timeout;
     if (isVideoPlaying) {
       interval = setInterval(() => {
@@ -99,7 +108,25 @@ export const CourseDetailPage: React.FC = () => {
       }, 500);
     }
     return () => clearInterval(interval);
-  }, [isVideoPlaying]);
+  }, [isVideoPlaying, isNativeVideo]);
+
+  // Réinitialiser l'état du lecteur quand on change de leçon
+  useEffect(() => {
+    setIsVideoPlaying(false);
+    setVideoProgress(0);
+  }, [currentLesson?.id]);
+
+  const handleNativeTimeUpdate = () => {
+    const video = videoElRef.current;
+    if (!video || !video.duration || Number.isNaN(video.duration)) return;
+    const pct = (video.currentTime / video.duration) * 100;
+    setVideoProgress(Math.min(100, Math.max(0, pct)));
+  };
+
+  const handleNativeEnded = () => {
+    setVideoProgress(100);
+    setIsVideoPlaying(false);
+  };
 
   const handleQuizSelect = (questionId: string, optionIdx: number) => {
     if (quizSubmitted[questionId]) return;
@@ -111,6 +138,22 @@ export const CourseDetailPage: React.FC = () => {
   };
 
   const toggleVideo = () => {
+    if (isNativeVideo) {
+      const video = videoElRef.current;
+      if (!video) return;
+      if (video.paused || video.ended) {
+        video.play().catch(() => {
+          // Lecture bloquée par le navigateur (rare sur un clic direct) : on resynchronise l'état.
+          setIsVideoPlaying(false);
+        });
+        setIsVideoPlaying(true);
+      } else {
+        video.pause();
+        setIsVideoPlaying(false);
+      }
+      return;
+    }
+
     setIsVideoPlaying(!isVideoPlaying);
     if (!isVideoPlaying) {
       // Simuler le démarrage de la vidéo
@@ -119,7 +162,15 @@ export const CourseDetailPage: React.FC = () => {
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+
+    if (isNativeVideo) {
+      const video = videoElRef.current;
+      if (video) video.muted = nextMuted;
+      return;
+    }
+
     const iframe = videoRef.current;
     if (iframe) {
       const muteCmd = isMuted ? 'unMute' : 'mute';
@@ -131,10 +182,10 @@ export const CourseDetailPage: React.FC = () => {
   };
 
   const toggleFullscreen = () => {
-    const iframe = videoRef.current;
-    if (iframe) {
+    const el: HTMLElement | null = isNativeVideo ? videoElRef.current : videoRef.current;
+    if (el) {
       if (!document.fullscreenElement) {
-        iframe.requestFullscreen?.();
+        el.requestFullscreen?.();
         setIsFullscreen(true);
       } else {
         document.exitFullscreen?.();
@@ -151,6 +202,10 @@ export const CourseDetailPage: React.FC = () => {
 
   const progressStats = getProgressStats();
   const allQuizzesDone = progressStats.totalQuiz > 0 && progressStats.answered === progressStats.totalQuiz;
+
+  function handleDownloadCertificate(cert: Certificate): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div className="min-h-screen bg-white pb-16">
@@ -341,22 +396,50 @@ export const CourseDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Lecteur vidéo YouTube */}
-              <div className="relative bg-gray-900 aspect-video overflow-hidden">
+              {/* Lecteur vidéo */}
+              <div className="relative bg-gray-900 aspect-video overflow-hidden group">
                 {currentLesson.videoUrl ? (
                   <>
-                    <iframe
-                      ref={videoRef}
-                      src={`${currentLesson.videoUrl}?enablejsapi=1&rel=0&modestbranding=1`}
-                      title={currentLesson.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      className="w-full h-full"
-                      onLoad={() => setIsVideoPlaying(true)}
-                    />
-                    
-                    {/* Contrôles vidéo personnalisés */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 hover:opacity-100 transition-opacity">
+                    {isNativeVideo ? (
+                      <video
+                        ref={videoElRef}
+                        src={currentLesson.videoUrl}
+                        className="w-full h-full"
+                        playsInline
+                        onClick={toggleVideo}
+                        onPlay={() => setIsVideoPlaying(true)}
+                        onPause={() => setIsVideoPlaying(false)}
+                        onTimeUpdate={handleNativeTimeUpdate}
+                        onEnded={handleNativeEnded}
+                      />
+                    ) : (
+                      <iframe
+                        ref={videoRef}
+                        src={`${currentLesson.videoUrl}?enablejsapi=1&rel=0&modestbranding=1`}
+                        title={currentLesson.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        className="w-full h-full"
+                        onLoad={() => setIsVideoPlaying(true)}
+                      />
+                    )}
+
+                    {/* Gros bouton play central pour la vidéo native, tant qu'elle ne joue pas.
+                        Sans ça, sur mobile notamment, il n'y a rien de visible à cliquer. */}
+                    {isNativeVideo && !isVideoPlaying && (
+                      <button
+                        onClick={toggleVideo}
+                        className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/20 hover:bg-black/30 transition-colors"
+                      >
+                        <span className="w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-700 flex items-center justify-center shadow-2xl transition-transform hover:scale-105">
+                          <PlayCircle className="w-12 h-12 fill-current ml-1" />
+                        </span>
+                      </button>
+                    )}
+
+                    {/* Contrôles vidéo personnalisés : toujours visibles sur mobile (pas de hover),
+                        et au survol sur desktop. */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <div className="flex items-center gap-3">
                         <button
                           onClick={toggleVideo}

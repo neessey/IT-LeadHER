@@ -226,7 +226,7 @@ export const initialEvents: Event[] = [
     isOnline: true,
     link: 'https://discord.gg/itleadher',
     image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80',
-    registeredCount: 1,
+    registeredCount: 0,
     maxCapacity: 200,
     speakers: [
       { name: 'KOSSONOU Emma', role: 'Executive Board', company: 'IT-LeadHER', avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=150&q=80' }

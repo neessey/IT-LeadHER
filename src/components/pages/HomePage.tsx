@@ -40,8 +40,7 @@ export const HomePage: React.FC = () => {
   const upcomingEvents = events.slice(0, 3);
 
   const stats = [
-    { icon: Users, value: '+500', label: t.hero.stat1, color: 'rose' },
-    { icon: Award, value: '+30', label: t.hero.stat2, color: 'purple' },
+    { icon: Users, value: '+30', label: t.hero.stat1, color: 'rose' },
     { icon: Calendar, value: '+20', label: t.hero.stat3, color: 'amber' },
     { icon: Building2, value: '+10', label: t.hero.stat4, color: 'emerald' }
   ];
@@ -139,7 +138,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Statistics */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="mt-20 grid grid-cols-2 md:grid-cols-3 gap-6">
             {stats.map((stat, index) => (
               <div 
                 key={index}

@@ -67,10 +67,9 @@ export const AboutPage: React.FC = () => {
   ];
 
   const stats = [
-    { label: 'Femmes formées', value: '+500', icon: Users, color: 'rose' },
-    { label: 'Pays représentés', value: '+30', icon: Globe, color: 'purple' },
+    { label: 'Femmes formées', value: '+30', icon: Users, color: 'rose' },
     { label: 'Formations certifiantes', value: '+20', icon: BookOpen, color: 'amber' },
-    { label: 'Mentors expertes', value: '+50', icon: Award, color: 'emerald' }
+    { label: 'Mentors expertes', value: '+10', icon: Award, color: 'emerald' }
   ];
 
   return (
@@ -92,7 +91,7 @@ export const AboutPage: React.FC = () => {
           </div>
           
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
-            <span className="text-gray-900">Notre mission :</span>
+            <span className="text-gray-900">Notre mission</span>
             <span className="block bg-rose-600 bg-clip-text text-transparent">
               {t.about.title}
             </span>
@@ -106,27 +105,7 @@ export const AboutPage: React.FC = () => {
         </div>
       </section>
 
-      {/* STATS SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="group bg-white rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl bg-${stat.color}-50 text-${stat.color}-500 group-hover:scale-110 transition-transform`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="text-3xl font-black text-gray-900">{stat.value}</div>
-                  <div className="text-sm font-medium text-gray-500">{stat.label}</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+    
 
       {/* HISTOIRE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -326,12 +305,7 @@ export const AboutPage: React.FC = () => {
               Que vous soyez débutante ou experte, votre place est ici.
             </p>
             
-            <div className="flex flex-wrap justify-center gap-4 pt-4">
-              <button className="px-8 py-4 rounded-xl bg-white text-rose-600 hover:bg-rose-50 font-bold shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-                Explorer les formations
-              </button>
-              
-            </div>
+            
           </div>
         </div>
       </section>

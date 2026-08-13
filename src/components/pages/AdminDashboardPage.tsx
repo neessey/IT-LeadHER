@@ -7,6 +7,85 @@ import {
 } from 'lucide-react';
 import { Course, Event, Article, User, UserRole } from '../../types';
 
+// Config Cloudinary (upload direct côté client, non-signé)
+const CLOUDINARY_CLOUD_NAME = (import.meta as any).env.VITE_CLOUDINARY_CLOUD_NAME as string;
+const CLOUDINARY_UPLOAD_PRESET = (import.meta as any).env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
+const CLOUDINARY_VIDEO_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
+
+// ------------------------------------------------------------------
+// Composants d'UI déclarés en dehors de AdminDashboardPage.
+// IMPORTANT : les définir à l'intérieur du composant recréait une
+// nouvelle "identité" de composant à CHAQUE frappe clavier (chaque
+// re-render), ce qui forçait React à démonter/remonter les <input>
+// et faisait perdre le focus après chaque lettre tapée.
+// ------------------------------------------------------------------
+
+const Modal = ({ isOpen, onClose, title, onSubmit, children }: any) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+        <form onSubmit={onSubmit} className="space-y-4">
+          {children}
+          <div className="flex justify-end gap-3 pt-4 border-t border-rose-100">
+            <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-rose-50 transition-colors">Annuler</button>
+            <button type="submit" className="px-6 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Confirmer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const InputField = React.memo(({ label, type = 'text', value, onChange, required = true, rows = 1, placeholder = '', icon: Icon }: any) => (
+  <div className="space-y-1.5">
+    <label className="block text-sm font-bold text-gray-700">{label}</label>
+    <div className="relative">
+      {Icon && (
+        <div className="absolute left-3 top-3 text-gray-400">
+          <Icon className="w-4 h-4" />
+        </div>
+      )}
+      {rows > 1 ? (
+        <textarea
+          rows={rows}
+          required={required}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`w-full p-3 rounded-xl border border-rose-200 text-sm focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all ${Icon ? 'pl-10' : ''}`}
+        />
+      ) : (
+        <input
+          type={type}
+          required={required}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`w-full p-3 rounded-xl border border-rose-200 text-sm focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all ${Icon ? 'pl-10' : ''}`}
+        />
+      )}
+    </div>
+  </div>
+));
+InputField.displayName = 'InputField';
+
+const ImageUpload = React.memo(({ label, value, onChange, onUpload }: any) => (
+  <div className="space-y-1.5">
+    <label className="block text-sm font-bold text-gray-700">{label}</label>
+    <div className="flex items-center gap-4">
+      {value && <img src={value} alt="Aperçu" className="w-16 h-12 rounded-lg object-cover border-2 border-rose-200" />}
+      <label className="flex-1 flex items-center justify-center gap-3 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-dashed border-rose-200 hover:border-rose-300 text-sm font-bold text-gray-700 cursor-pointer transition-all">
+        <Upload className="w-4 h-4 text-rose-400" />
+        <span>Importer une image</span>
+        <input type="file" accept="image/*" onChange={e => onUpload(e, onChange)} className="hidden" />
+      </label>
+    </div>
+  </div>
+));
+ImageUpload.displayName = 'ImageUpload';
+
 export const AdminDashboardPage: React.FC = () => {
   const {
     currentUser, allUsers, courses, events, articles, certificates,
@@ -14,7 +93,7 @@ export const AdminDashboardPage: React.FC = () => {
     updateUserRoleAdmin, toggleUserStatusAdmin, deleteUserAdmin, addUserAdmin,
     addCourseAdmin, deleteCourseAdmin, addEventAdmin, deleteEventAdmin,
     addArticleAdmin, deleteArticleAdmin,
-    updatePartnerInquiryStatusAdmin, showToast
+    updatePartnerInquiryStatusAdmin, deletePartnerInquiryAdmin, showToast
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'courses' | 'events' | 'blog' | 'partners' | 'settings'>('overview');
@@ -25,6 +104,8 @@ export const AdminDashboardPage: React.FC = () => {
 
   // Type de source vidéo pour les cours
   const [videoSourceType, setVideoSourceType] = useState<'none' | 'youtube' | 'cursa' | 'local'>('none');
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
 
   const [newUser, setNewUser] = useState({
     firstName: '', lastName: '', email: '', role: 'member' as UserRole,
@@ -72,27 +153,75 @@ export const AdminDashboardPage: React.FC = () => {
   const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Vérifier le type de fichier
     if (!file.type.startsWith('video/')) {
       showToast('Veuillez sélectionner un fichier vidéo.', 'error');
       return;
     }
-    
-    // Vérifier la taille (max 500MB)
-    if (file.size > 500 * 1024 * 1024) {
-      showToast('La vidéo est trop volumineuse (max 500 Mo).', 'error');
+
+    // Vérifier la taille (max 150 Mo, largement suffisant pour des leçons de ~3 min)
+    if (file.size > 150 * 1024 * 1024) {
+      showToast('La vidéo est trop volumineuse (max 150 Mo). Privilégiez des leçons courtes (~3 min).', 'error');
       return;
     }
 
-    setNewCourse({
-      ...newCourse,
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+      showToast('Configuration Cloudinary manquante (variables VITE_CLOUDINARY_...).', 'error');
+      return;
+    }
+
+    // Aperçu local instantané pendant l'upload
+    setNewCourse(prev => ({
+      ...prev,
       videoFile: file,
       videoFileName: file.name,
       videoUrl: URL.createObjectURL(file)
-    });
+    }));
     setVideoSourceType('local');
-    showToast(`Vidéo "${file.name}" chargée avec succès !`);
+    setIsUploadingVideo(true);
+    setVideoUploadProgress(0);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('resource_type', 'video');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', CLOUDINARY_VIDEO_UPLOAD_URL, true);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        setVideoUploadProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      setIsUploadingVideo(false);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          setNewCourse(prev => ({
+            ...prev,
+            videoFile: file,
+            videoFileName: file.name,
+            videoUrl: data.secure_url as string
+          }));
+          showToast(`Vidéo "${file.name}" envoyée avec succès !`);
+        } catch {
+          showToast("Erreur lors de la lecture de la réponse Cloudinary.", 'error');
+        }
+      } else {
+        showToast("Échec de l'envoi de la vidéo. Vérifiez votre upload preset Cloudinary.", 'error');
+      }
+    };
+
+    xhr.onerror = () => {
+      setIsUploadingVideo(false);
+      showToast("Erreur réseau pendant l'envoi de la vidéo.", 'error');
+    };
+
+    xhr.send(formData);
   };
 
   const extractYouTubeId = (url: string): string | null => {
@@ -131,15 +260,16 @@ export const AdminDashboardPage: React.FC = () => {
 
   const createCourse = (e: React.FormEvent) => {
     e.preventDefault();
-    const courseId = `course-${Date.now()}`;
-    
-    let thumbnail = newCourse.thumbnail;
-    let videoUrl = newCourse.videoUrl;
 
-    // Si c'est une vidéo locale, on garde l'URL créée
-    if (newCourse.videoFile) {
-      videoUrl = newCourse.videoUrl; // URL.createObjectURL
+    if (isUploadingVideo) {
+      showToast("Patiente, la vidéo est encore en cours d'envoi...", 'error');
+      return;
     }
+
+    const courseId = `course-${Date.now()}`;
+
+    let thumbnail = newCourse.thumbnail;
+    const videoUrl = newCourse.videoUrl;
 
     // Si c'est YouTube, générer la miniature
     if (videoSourceType === 'youtube' && newCourse.videoUrl) {
@@ -149,16 +279,22 @@ export const AdminDashboardPage: React.FC = () => {
       }
     }
 
+    // On exclut les champs internes à l'UI (File brut, nom de fichier, string skills)
+    // qui ne doivent JAMAIS être envoyés tels quels à Firestore : un objet File
+    // n'est pas sérialisable et fait planter setDoc(), ce qui bloquait le bouton
+    // "Confirmer" sans message d'erreur visible.
+    const { videoFile, videoFileName, skills, ...courseFields } = newCourse;
+
     addCourseAdmin({
       id: courseId,
-      ...newCourse,
+      ...courseFields,
       thumbnail: thumbnail || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
       videoUrl: videoUrl || '',
       videoSource: videoSourceType,
       modulesCount: 5,
       rating: 5.0,
       enrolledCount: 1,
-      skillsAcquired: newCourse.skills.split(',').map(s => s.trim()),
+      skillsAcquired: skills.split(',').map(s => s.trim()),
       lessons: [{
         id: `l-${Date.now()}-1`,
         courseId,
@@ -170,7 +306,7 @@ export const AdminDashboardPage: React.FC = () => {
         order: 1
       }]
     } as unknown as Course);
-    
+
     setModals(prev => ({ ...prev, course: false }));
     setNewCourse({
       title: '', description: '', fullDescription: '', category: 'dev' as any,
@@ -185,6 +321,7 @@ export const AdminDashboardPage: React.FC = () => {
       skills: 'React, TypeScript, Node.js'
     });
     setVideoSourceType('none');
+    setVideoUploadProgress(0);
     showToast('Formation créée avec succès !');
   };
 
@@ -247,72 +384,6 @@ export const AdminDashboardPage: React.FC = () => {
     { id: 'partners', label: 'Partenaires', icon: Handshake, badge: pendingPartners },
     { id: 'settings', label: 'Paramètres', icon: Settings }
   ];
-
-  const Modal = ({ isOpen, onClose, title, onSubmit, children }: any) => {
-    if (!isOpen) return null;
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-          <form onSubmit={onSubmit} className="space-y-4">
-            {children}
-            <div className="flex justify-end gap-3 pt-4 border-t border-rose-100">
-              <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-rose-50 transition-colors">Annuler</button>
-              <button type="submit" className="px-6 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold transition-colors">Confirmer</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
-  const InputField = React.memo(({ label, type = 'text', value, onChange, required = true, rows = 1, placeholder = '', icon: Icon }: any) => (
-    <div className="space-y-1.5">
-      <label className="block text-sm font-bold text-gray-700">{label}</label>
-      <div className="relative">
-        {Icon && (
-          <div className="absolute left-3 top-3 text-gray-400">
-            <Icon className="w-4 h-4" />
-          </div>
-        )}
-        {rows > 1 ? (
-          <textarea
-            rows={rows}
-            required={required}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className={`w-full p-3 rounded-xl border border-rose-200 text-sm focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all ${Icon ? 'pl-10' : ''}`}
-          />
-        ) : (
-          <input
-            type={type}
-            required={required}
-            value={value}
-            onChange={onChange}
-            placeholder={placeholder}
-            className={`w-full p-3 rounded-xl border border-rose-200 text-sm focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all ${Icon ? 'pl-10' : ''}`}
-          />
-        )}
-      </div>
-    </div>
-  ));
-  InputField.displayName = 'InputField';
-
-  const ImageUpload = React.memo(({ label, value, onChange }: any) => (
-    <div className="space-y-1.5">
-      <label className="block text-sm font-bold text-gray-700">{label}</label>
-      <div className="flex items-center gap-4">
-        {value && <img src={value} alt="Aperçu" className="w-16 h-12 rounded-lg object-cover border-2 border-rose-200" />}
-        <label className="flex-1 flex items-center justify-center gap-3 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-dashed border-rose-200 hover:border-rose-300 text-sm font-bold text-gray-700 cursor-pointer transition-all">
-          <Upload className="w-4 h-4 text-rose-400" />
-          <span>Importer une image</span>
-          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, onChange)} className="hidden" />
-        </label>
-      </div>
-    </div>
-  ));
-  ImageUpload.displayName = 'ImageUpload';
 
   const renderOverview = () => (
     <div className="space-y-10">
@@ -766,17 +837,18 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="space-y-2">
             <label className="block text-sm font-bold text-gray-700">Choisir une vidéo depuis votre appareil</label>
             <div className="flex items-center gap-4">
-              <label className="flex-1 flex items-center justify-center gap-3 p-4 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-dashed border-rose-200 hover:border-rose-300 text-sm font-bold text-gray-700 cursor-pointer transition-all">
+              <label className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-dashed border-rose-200 hover:border-rose-300 text-sm font-bold text-gray-700 transition-all ${isUploadingVideo ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
                 <Upload className="w-5 h-5 text-rose-400" />
-                <span>{newCourse.videoFileName || 'Choisir une vidéo (MP4, WebM, max 500Mo)'}</span>
-                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" />
+                <span>{newCourse.videoFileName || 'Choisir une vidéo (MP4, WebM — leçons courtes ~3 min)'}</span>
+                <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={isUploadingVideo} className="hidden" />
               </label>
-              {newCourse.videoFileName && (
+              {newCourse.videoFileName && !isUploadingVideo && (
                 <button
                   type="button"
                   onClick={() => {
                     setNewCourse({ ...newCourse, videoFile: null, videoFileName: '', videoUrl: '' });
                     setVideoSourceType('none');
+                    setVideoUploadProgress(0);
                   }}
                   className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold transition-colors"
                 >
@@ -784,12 +856,28 @@ export const AdminDashboardPage: React.FC = () => {
                 </button>
               )}
             </div>
-            {newCourse.videoFile && (
+
+            {isUploadingVideo && (
+              <div className="bg-rose-50 p-3 rounded-xl border border-rose-200 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-rose-600">
+                  <span>Envoi vers Cloudinary...</span>
+                  <span>{videoUploadProgress}%</span>
+                </div>
+                <div className="w-full h-2 bg-rose-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-rose-500 rounded-full transition-all duration-200"
+                    style={{ width: `${videoUploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!isUploadingVideo && newCourse.videoFile && newCourse.videoUrl && !newCourse.videoUrl.startsWith('blob:') && (
               <div className="bg-green-50 p-3 rounded-xl border border-green-200">
                 <p className="text-xs text-green-700">
-                  ✅ Vidéo chargée : <span className="font-bold">{newCourse.videoFileName}</span>
+                  ✅ Vidéo envoyée : <span className="font-bold">{newCourse.videoFileName}</span>
                   <br />
-                  Taille : {(newCourse.videoFile.size / (1024 * 1024)).toFixed(2)} Mo
+                  Taille : {(newCourse.videoFile.size / (1024 * 1024)).toFixed(2)} Mo — hébergée sur Cloudinary
                 </p>
               </div>
             )}
@@ -814,8 +902,8 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         )}
 
-        <ImageUpload label="Image de couverture (optionnel)" value={newCourse.thumbnail} onChange={(url: any) => setNewCourse({ ...newCourse, thumbnail: url })} />
-        <ImageUpload label="Photo de l'instructeur" value={newCourse.instructorAvatar} onChange={(url: any) => setNewCourse({ ...newCourse, instructorAvatar: url })} />
+        <ImageUpload label="Image de couverture (optionnel)" value={newCourse.thumbnail} onChange={(url: any) => setNewCourse({ ...newCourse, thumbnail: url })} onUpload={handleImageUpload} />
+        <ImageUpload label="Photo de l'instructeur" value={newCourse.instructorAvatar} onChange={(url: any) => setNewCourse({ ...newCourse, instructorAvatar: url })} onUpload={handleImageUpload} />
         
         <InputField label="Compétences (séparées par des virgules)" value={newCourse.skills} onChange={(e: any) => setNewCourse({ ...newCourse, skills: e.target.value })} />
       </Modal>
@@ -835,7 +923,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
           <InputField label="Pays" value={newUser.country} onChange={(e: any) => setNewUser({ ...newUser, country: e.target.value })} />
         </div>
-        <ImageUpload label="Photo de profil" value={newUser.avatar} onChange={(url: any) => setNewUser({ ...newUser, avatar: url })} />
+        <ImageUpload label="Photo de profil" value={newUser.avatar} onChange={(url: any) => setNewUser({ ...newUser, avatar: url })} onUpload={handleImageUpload} />
       </Modal>
 
       <Modal isOpen={modals.event} onClose={() => setModals(prev => ({ ...prev, event: false }))} title="Créer un Événement" onSubmit={createEvent}>
@@ -845,19 +933,15 @@ export const AdminDashboardPage: React.FC = () => {
           <InputField label="Date" value={newEvent.date} onChange={(e: any) => setNewEvent({ ...newEvent, date: e.target.value })} />
           <InputField label="Capacité" type="number" value={newEvent.maxCapacity} onChange={(e: any) => setNewEvent({ ...newEvent, maxCapacity: parseInt(e.target.value) || 100 })} />
         </div>
-        <ImageUpload label="Image" value={newEvent.image} onChange={(url: any) => setNewEvent({ ...newEvent, image: url })} />
+        <ImageUpload label="Image" value={newEvent.image} onChange={(url: any) => setNewEvent({ ...newEvent, image: url })} onUpload={handleImageUpload} />
       </Modal>
 
       <Modal isOpen={modals.article} onClose={() => setModals(prev => ({ ...prev, article: false }))} title="Rédiger un Article" onSubmit={createArticle}>
         <InputField label="Titre" value={newArticle.title} onChange={(e: any) => setNewArticle({ ...newArticle, title: e.target.value })} />
         <InputField label="Résumé" value={newArticle.summary} onChange={(e: any) => setNewArticle({ ...newArticle, summary: e.target.value })} />
         <InputField label="Contenu" rows={5} value={newArticle.content} onChange={(e: any) => setNewArticle({ ...newArticle, content: e.target.value })} />
-        <ImageUpload label="Image" value={newArticle.cover} onChange={(url: any) => setNewArticle({ ...newArticle, cover: url })} />
+        <ImageUpload label="Image" value={newArticle.cover} onChange={(url: any) => setNewArticle({ ...newArticle, cover: url })} onUpload={handleImageUpload} />
       </Modal>
     </div>
   );
 };
-
-function deletePartnerInquiryAdmin(id: any): void {
-  throw new Error('Function not implemented.');
-}

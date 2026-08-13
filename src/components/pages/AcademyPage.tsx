@@ -332,8 +332,9 @@ export const AcademyPage: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto mt-2 text-sm leading-relaxed">
             Rejoignez notre réseau d'experts et partagez votre expertise avec la communauté IT-LeadHER.
           </p>
-          <button className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors inline-flex items-center gap-2">
-            <span>Devenir mentor</span>
+          <button
+           className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors inline-flex items-center gap-2">
+            <span>Devenir Formateur/trice</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
