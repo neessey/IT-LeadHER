@@ -22,7 +22,8 @@ import {
   Volume2,
   VolumeX,
   Maximize,
-  Minimize
+  Minimize,
+  Play
 } from 'lucide-react';
 import { Certificate } from '@/src/types';
 
@@ -260,40 +261,49 @@ export const CourseDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Certificat */}
-            <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 text-center space-y-3">
-              <Award className="w-12 h-12 text-rose-400 mx-auto" />
-              <div className="text-sm font-bold text-white">Certificat de Réussite</div>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Validez toutes les leçons et les quiz pour obtenir votre certificat numérique.
-              </p>
-              {cert ? (
-                <button
-                        onClick={() => handleDownloadCertificate(cert)}
-                        disabled={isDownloading === cert.id}
-                        className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isDownloading === cert.id ? (
-                          <>
-                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Téléchargement...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Award className="w-4 h-4" />
-                            <span>Télécharger mon certificat</span>
-                          </>
-                        )}
-                     
-                    </button>
-              ) : (
-                <div className="w-full py-3 rounded-xl bg-gray-700/50 text-gray-400 text-sm font-bold flex items-center justify-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  <span>Complétez le cours</span>
-                </div>
-              )}
-            </div>
-  
+          {/* Certificat */}
+<div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 text-center space-y-3">
+  <Award className="w-12 h-12 text-rose-400 mx-auto" />
+
+  <div className="text-sm font-bold text-white">
+    Certificat de Réussite
+  </div>
+
+  <p className="text-xs text-gray-400 leading-relaxed">
+    Validez toutes les leçons et les quiz pour obtenir votre certificat numérique.
+  </p>
+
+  {cert ? (
+    <button
+      onClick={() => handleDownloadCertificate(cert)}
+      disabled={isDownloading === cert.id}
+      className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isDownloading === cert.id ? (
+        <>
+          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <span>Téléchargement...</span>
+        </>
+      ) : (
+        <>
+          <Award className="w-4 h-4" />
+          <span>Certificat débloqué</span>
+        </>
+      )}
+    </button>
+  ) : (
+    <div className="w-full py-3 rounded-xl bg-gray-700/50 text-gray-400 text-sm font-bold flex items-center justify-center gap-2">
+      <Lock className="w-4 h-4" />
+      <span>Complétez le cours</span>
+    </div>
+  )}
+
+  {/* Information espace membre */}
+  <p className="pt-2 text-[11px] text-gray-500 leading-relaxed border-t border-gray-700/50">
+    Une fois obtenu, votre certificat sera  disponible au téléchargement
+    depuis votre <span className="text-rose-400 font-medium">espace membre</span>.
+  </p>
+</div>
           </div>
         </div>
       </header>
@@ -432,7 +442,7 @@ export const CourseDetailPage: React.FC = () => {
                         className="absolute inset-0 flex flex-col items-center justify-center text-white bg-black/20 hover:bg-black/30 transition-colors"
                       >
                         <span className="w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-700 flex items-center justify-center shadow-2xl transition-transform hover:scale-105">
-                          <PlayCircle className="w-12 h-12 fill-current ml-1" />
+                          <Play className="w-12 h-12 fill-current ml-1" />
                         </span>
                       </button>
                     )}
@@ -451,7 +461,7 @@ export const CourseDetailPage: React.FC = () => {
                               <rect x="14" y="4" width="4" height="16" />
                             </svg>
                           ) : (
-                            <PlayCircle className="w-6 h-6" />
+                            <Play className="w-6 h-6" />
                           )}
                         </button>
 
