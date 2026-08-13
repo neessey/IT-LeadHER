@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-export default async function handler(req: { method: string; body: { prompt?: string; language?: string; context?: string }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error?: string; reply?: string | undefined; }): any; new(): any; }; }; }) {
+export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed",
@@ -17,10 +17,8 @@ export default async function handler(req: { method: string; body: { prompt?: st
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      console.error("GEMINI_API_KEY is missing");
-
       return res.status(500).json({
-        error: "GEMINI_API_KEY non configurée sur Vercel",
+        error: "GEMINI_API_KEY non configurée",
       });
     }
 
@@ -29,7 +27,7 @@ export default async function handler(req: { method: string; body: { prompt?: st
     });
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       contents: [
         {
           role: "user",
@@ -38,7 +36,7 @@ export default async function handler(req: { method: string; body: { prompt?: st
               text: `
 Tu es l'assistant IA officiel de IT-LeadHER.
 
-Réponds en ${language}.
+Réponds toujours en ${language}.
 
 Contexte :
 ${context}
@@ -55,11 +53,11 @@ ${prompt}
     return res.status(200).json({
       reply: response.text,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI ASSISTANT ERROR:", error);
 
     return res.status(500).json({
-      error: error instanceof Error ? error.message : "Erreur interne du serveur",
+      error: error?.message || "Erreur interne du serveur",
     });
   }
 }
