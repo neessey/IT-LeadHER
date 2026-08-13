@@ -46,10 +46,19 @@ ${prompt}
     });
 
   } catch (error: any) {
-    console.error("AI ASSISTANT ERROR:", error);
+  console.error("AI ASSISTANT ERROR:", error);
 
-    return res.status(500).json({
-      error: error?.message || "Erreur interne du serveur",
+  const status = error?.status || error?.statusCode || 500;
+
+  if (status === 429) {
+    return res.status(429).json({
+      error: "L'assistant IA a temporairement atteint sa limite de requêtes. Veuillez réessayer dans quelques instants.",
+      retryAfter: 5,
     });
   }
+
+  return res.status(500).json({
+    error: error?.message || "Erreur interne du serveur",
+  });
+}
 }
