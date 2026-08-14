@@ -523,7 +523,7 @@ export const AdminDashboardPage: React.FC = () => {
           <Search className="w-4 h-4 text-rose-400 absolute left-3 top-3.5" />
           <input type="text" value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="Rechercher..." className="w-full pl-10 pr-4 py-3 rounded-xl border border-rose-200 text-sm bg-rose-50 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all" />
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center justify-between gap-2">
           <select value={userRoleFilter} onChange={e => setUserRoleFilter(e.target.value)} className="px-4 py-3 rounded-xl border border-rose-200 text-sm font-bold bg-rose-50 focus:outline-none focus:border-rose-400">
             <option value="all">Tous les rôles ({allUsers.length})</option>
             {['member', 'mentor', 'partner', 'admin'].map(role => <option key={role} value={role}>{role.charAt(0).toUpperCase() + role.slice(1)}s</option>)}
@@ -542,7 +542,7 @@ export const AdminDashboardPage: React.FC = () => {
           <tbody className="divide-y divide-rose-100">
             {filteredUsers.map(u => (
               <tr key={u.id} className="hover:bg-rose-50 transition-colors">
-                <td className="p-4"><div className="flex items-center gap-3"><img src={u.avatar} alt={u.firstName} className="w-10 h-10 rounded-full object-cover border-2 border-rose-200" /><div className="font-bold text-gray-900">{u.firstName} {u.lastName}</div></div></td>
+                <td className="p-4"><div className="flex items-center gap-3"><div className="font-bold text-gray-900">{u.firstName} {u.lastName}</div></div></td>
                 <td className="p-4 text-gray-600 font-mono text-xs">{u.email}</td>
                 <td className="p-4">
                   <select value={u.role} onChange={e => updateUserRoleAdmin(u.id, e.target.value as UserRole)} className="px-3 py-1.5 rounded-lg text-xs font-bold border bg-rose-50 text-rose-700 border-rose-200 focus:outline-none focus:border-rose-400">
