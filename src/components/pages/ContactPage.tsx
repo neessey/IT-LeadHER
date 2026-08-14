@@ -127,7 +127,7 @@ export const ContactPage: React.FC = () => {
                       rel="noopener noreferrer"
                       className="text-sm text-black transition-colors flex items-center gap-1"
                     >
-                      +225 01 40 58 62 80
+                      +225 05 04 27 28 27
                       <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">Rapide</span>
                     </a>
                   </div>
