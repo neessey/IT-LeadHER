@@ -10,6 +10,7 @@ export const AcademyPage: React.FC = () => {
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
+  const WHATSAPP_NUMBER = '2250504272827'; // Remplace par le vrai numéro de l'admin
   const categories = [
     { id: 'all', label: t.academy.allCategories },
     { id: 'dev', label: 'Développement Web' },
@@ -332,11 +333,16 @@ export const AcademyPage: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto mt-2 text-sm leading-relaxed">
             Rejoignez notre réseau d'experts et partagez votre expertise avec la communauté IT-LeadHER.
           </p>
-          <button
-           className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors inline-flex items-center gap-2">
-            <span>Devenir Formateur/trice</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Bonjour, je souhaite devenir formateur/trice de IT-LeadHER.')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+           className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors inline-flex items-center gap-2"
+          >
+  <span>Devenir Formateur/trice</span>
+            <ArrowRight className="w-4 h-4" />         
+             </a>
+          
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Mail, Phone, MapPin, ChevronDown, ChevronUp, Send, User, MessageSquare, Clock, Globe, Building2, HelpCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, ChevronDown, ChevronUp, Send, User, MessageSquare, Clock, Globe, Building2, HelpCircle, Loader2 } from 'lucide-react';
 
 export const ContactPage: React.FC = () => {
   const { t, showToast, language } = useApp();
@@ -8,6 +8,10 @@ export const ContactPage: React.FC = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Numéro WhatsApp de l'équipe IT-LeadHER (format international sans le +)
+  // Remplace par le vrai numéro de l'admin
+  const WHATSAPP_NUMBER = '2250504272827'; // Exemple: +225 01 40 58 62 80
 
   const faqs = [
     {
@@ -19,12 +23,12 @@ export const ContactPage: React.FC = () => {
       a: "La majorité de nos parcours fondamentaux et événements communautaires sont 100% gratuits grâce au soutien de nos partenaires. Certains bootcamps spécialisés intensifs proposent des bourses complètes sur critères d'admission."
     },
     {
-      q: "Comment obtenir un certificat de réussite ?",
-      a: "Pour obtenir votre certificat officiel IT-LeadHER, vous devez compléter 100% des leçons et valider les quiz associés d'un cours e-learning. Un certificat vérifiable avec QR code est alors automatiquement généré sur votre espace personnel."
+      q: "Comment obtenir un certificat de participation ?",
+      a: "Pour obtenir votre certificat IT-LeadHER, vous devez compléter 100% des leçons et valider les quiz associés d'un cours e-learning. Un certificat  est alors automatiquement généré sur votre espace personnel."
     },
     {
       q: "Comment devenir mentor pour la communauté ?",
-      a: "Si vous êtes une professionnelle de la tech avec plus de 3 ans d'expérience, nous serions honorées de vous accueillir ! Remplissez le formulaire de contact ou sélectionnez 'Mentor' lors de votre inscription."
+      a: "Si vous êtes une professionnelle de la tech avec plus de 3 ans d'expérience, nous serions honorées de vous accueillir ! Remplissez le formulaire de contact svp."
     },
     {
       q: "Quels sont les horaires d'ouverture ?",
@@ -35,15 +39,35 @@ export const ContactPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Construire le message formaté pour WhatsApp
+    const message = ` *Nouveau message de contact IT-LeadHER*
+
+ *Nom :* ${form.name}
+ *Email :* ${form.email}
+ *Sujet :* ${form.subject}
+ *Message :* ${form.message}
+
+ Envoyé le ${new Date().toLocaleString('fr-FR')}`;
+
+    // Encoder le message pour l'URL
+    const encodedMessage = encodeURIComponent(message);
     
+    // Créer le lien WhatsApp
+    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
+
+    // Ouvrir WhatsApp dans un nouvel onglet
+    window.open(whatsappUrl, '_blank');
+
+    // Simuler l'envoi pour l'UI
     setTimeout(() => {
-      showToast(language === 'fr' ? 'Votre message a été transmis avec succès !' : 'Your message has been sent successfully!');
+      showToast(language === 'fr' ? '✅ Message préparé pour WhatsApp !' : '✅ Message prepared for WhatsApp!');
       setForm({ name: '', email: '', subject: '', message: '' });
       setIsSubmitting(false);
       setIsSuccess(true);
       
       setTimeout(() => setIsSuccess(false), 5000);
-    }, 1500);
+    }, 1000);
   };
 
   return (
@@ -62,6 +86,10 @@ export const ContactPage: React.FC = () => {
           <p className="text-base text-gray-600 max-w-2xl mx-auto mt-3 leading-relaxed">
             {t.contact.subtitle}
           </p>
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-200 rounded-xl text-sm text-green-700">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Réponse rapide via WhatsApp
+          </div>
         </div>
       </header>
 
@@ -81,19 +109,27 @@ export const ContactPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-sm font-bold text-gray-900">E-mail</div>
-                    <a href="mailto:contact@it-leadher.org" className="text-sm text-rose-600 hover:text-rose-700 transition-colors">
+                    <a href="mailto:contact@it-leadher.org" className="text-sm text-black  transition-colors">
                       contact.itleadher@gmail.com
                     </a>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-3 rounded-xl bg-gray-50 hover:bg-purple-50 transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                <div className="flex items-start gap-4 p-3 rounded-xl bg-gray-50 hover:bg-green-50 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center shrink-0">
                     <Phone className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-gray-900">Téléphone</div>
-                    <div className="text-sm text-gray-600">+225 01 40 58 62 80</div>
+                    <div className="text-sm font-bold text-gray-900">WhatsApp</div>
+                    <a 
+                      href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-black transition-colors flex items-center gap-1"
+                    >
+                      +225 01 40 58 62 80
+                      <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">Rapide</span>
+                    </a>
                   </div>
                 </div>
 
@@ -119,16 +155,18 @@ export const ContactPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Réseaux / Présence */}
-            
+           
           </div>
 
           {/* Formulaire */}
           <div className="lg:col-span-8 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900">Envoyer un message</h3>
-              <p className="text-sm text-gray-500 mt-1">
-                Une question ? Une suggestion ? N'hésitez pas à nous contacter.
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-2xl font-bold text-gray-900">Envoyer un message</h3>
+                
+              </div>
+              <p className="text-sm text-gray-500">
+                Votre message sera envoyé directement sur WhatsApp. Réponse rapide garantie !
               </p>
             </div>
 
@@ -138,8 +176,8 @@ export const ContactPage: React.FC = () => {
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-emerald-800">Message envoyé !</div>
-                  <div className="text-xs text-emerald-700">Nous vous répondrons dans les plus brefs délais.</div>
+                  <div className="text-sm font-bold text-emerald-800">Message prêt pour WhatsApp !</div>
+                  <div className="text-xs text-emerald-700">Votre message a été préparé, WhatsApp va s'ouvrir.</div>
                 </div>
               </div>
             )}
@@ -158,7 +196,7 @@ export const ContactPage: React.FC = () => {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder="Votre nom"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-shadow"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
                     />
                   </div>
                 </div>
@@ -175,7 +213,7 @@ export const ContactPage: React.FC = () => {
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="votre@email.com"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-shadow"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
                     />
                   </div>
                 </div>
@@ -193,7 +231,7 @@ export const ContactPage: React.FC = () => {
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
                     placeholder="Sujet de votre message"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-shadow"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow"
                   />
                 </div>
               </div>
@@ -209,7 +247,7 @@ export const ContactPage: React.FC = () => {
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                     placeholder="Votre message..."
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-shadow resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-shadow resize-none"
                   />
                 </div>
               </div>
@@ -217,20 +255,24 @@ export const ContactPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Envoi en cours...</span>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Préparation...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span>{t.contact.sendBtn}</span>
+                    <span>Envoyer via WhatsApp</span>
                   </>
                 )}
               </button>
+
+              <p className="text-[11px] text-gray-400 text-center">
+                En cliquant sur "Envoyer", vous serez redirigé vers WhatsApp pour finaliser l'envoi.
+              </p>
             </form>
           </div>
 
@@ -292,9 +334,14 @@ export const ContactPage: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto mt-2 text-sm leading-relaxed">
             Rejoignez notre écosystème et participez à la transformation numérique en Afrique.
           </p>
-          <button className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors">
-            Nous contacter
-          </button>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Bonjour, je souhaite devenir partenaire de IT-LeadHER.')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors"
+          >
+            Nous contacter sur WhatsApp
+          </a>
         </div>
       </section>
 

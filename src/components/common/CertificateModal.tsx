@@ -133,7 +133,7 @@ export const CertificateModal: React.FC = () => {
 
             {/* Title */}
             <h1 className="text-3xl md:text-4xl font-serif font-extrabold text-[#212B36] mb-2">
-              CERTIFICAT DE RÉUSSITE
+              CERTIFICAT DE PARTICIPATION
             </h1>
             <p className="text-sm font-light text-gray-600 uppercase tracking-widest mb-6">
               {language === 'fr' ? 'Ce certificat est décerné avec les félicitations du jury à :' : 'This certificate is proudly awarded to:'}
@@ -164,8 +164,7 @@ export const CertificateModal: React.FC = () => {
                 <p className="text-xs text-gray-500">{language === 'fr' ? 'Délivré le :' : 'Issued on:'}</p>
                 <p className="text-sm font-semibold text-gray-800">{selectedCertificate.issueDate}</p>
                 <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-700 font-medium">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Code : {selectedCertificate.certificateCode}</span>
+                  <span>Ceci est un certificat de participation, prière ne pas l'utiliser à des fins professionnelles.</span>
                 </div>
               </div>
 

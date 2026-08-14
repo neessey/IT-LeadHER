@@ -8,6 +8,8 @@ export const EventsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
+  const WHATSAPP_NUMBER = '2250778954276'; // Remplace par le vrai numéro de l'admin
+
   const eventTypes = [
     { id: 'all', label: t.events.allTypes },
     { id: 'conference', label: t.events.conference },
@@ -289,10 +291,16 @@ export const EventsPage: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto mt-2 text-sm leading-relaxed">
             Proposez un atelier, un bootcamp ou une conférence pour la communauté IT-LeadHER.
           </p>
-          <button className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors inline-flex items-center gap-2">
-            <span>Proposer un événement</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <a
+                     href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Bonjour, je souhaite proposer un événement pour IT-LeadHER.')}`}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                    className="mt-6 px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors inline-flex items-center gap-2"
+                   >
+           <span>Proposer un événement</span>
+                     <ArrowRight className="w-4 h-4" />         
+                      </a>
+                   
         </div>
       </section>
 

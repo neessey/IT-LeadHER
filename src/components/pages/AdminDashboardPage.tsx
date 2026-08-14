@@ -3,28 +3,30 @@ import { useApp } from '../../context/AppContext';
 import {
   Shield, Users, BookOpen, Calendar, FileText, Plus, Award, Trash2, Ban, UserPlus,
   Handshake, Search, ChevronRight, ExternalLink, Upload, Video,
-  LayoutDashboard, Settings, Menu, X, Megaphone, LogOut, Youtube, Link, Film
+  LayoutDashboard, Settings, Menu, X, Megaphone, LogOut, Youtube, Link, Film,
+  Check, X as XIcon, HelpCircle, Trophy
 } from 'lucide-react';
-import { Course, Event, Article, User, UserRole } from '../../types';
+import { Course, Event, Article, User, UserRole, Lesson, QuizQuestion } from '../../types';
 
-// Config Cloudinary (upload direct côté client, non-signé)
+type LessonDraft = Partial<Lesson> & {
+  videoFile?: File | null;
+  videoFileName?: string;
+};
+
+// Config Cloudinary
 const CLOUDINARY_CLOUD_NAME = (import.meta as any).env.VITE_CLOUDINARY_CLOUD_NAME as string;
 const CLOUDINARY_UPLOAD_PRESET = (import.meta as any).env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
 const CLOUDINARY_VIDEO_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
 
 // ------------------------------------------------------------------
-// Composants d'UI déclarés en dehors de AdminDashboardPage.
-// IMPORTANT : les définir à l'intérieur du composant recréait une
-// nouvelle "identité" de composant à CHAQUE frappe clavier (chaque
-// re-render), ce qui forçait React à démonter/remonter les <input>
-// et faisait perdre le focus après chaque lettre tapée.
+// Composants d'UI
 // ------------------------------------------------------------------
 
-const Modal = ({ isOpen, onClose, title, onSubmit, children }: any) => {
+const Modal = ({ isOpen, onClose, title, onSubmit, children, maxWidth = 'max-w-4xl' }: any) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      <div className={`bg-white rounded-3xl p-8 ${maxWidth} w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto`}>
         <h3 className="text-xl font-bold text-gray-900">{title}</h3>
         <form onSubmit={onSubmit} className="space-y-4">
           {children}
@@ -85,7 +87,6 @@ const ImageUpload = React.memo(({ label, value, onChange, onUpload }: any) => (
   </div>
 ));
 ImageUpload.displayName = 'ImageUpload';
-
 export const AdminDashboardPage: React.FC = () => {
   const {
     currentUser, allUsers, courses, events, articles, certificates,
@@ -102,10 +103,20 @@ export const AdminDashboardPage: React.FC = () => {
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [modals, setModals] = useState({ user: false, course: false, event: false, article: false });
 
-  // Type de source vidéo pour les cours
-  const [videoSourceType, setVideoSourceType] = useState<'none' | 'youtube' | 'cursa' | 'local'>('none');
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
-  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  // État pour les leçons du cours
+  const [courseLessons, setCourseLessons] = useState<LessonDraft[]>([
+    {
+      id: `lesson-${Date.now()}-0`,
+      title: 'Introduction',
+      duration: '30 min',
+      videoUrl: '',
+      videoSource: 'none',
+      content: 'Bienvenue dans ce cours.',
+      quiz: [],
+      passingScore: 90,
+      order: 0
+    }
+  ]);
 
   const [newUser, setNewUser] = useState({
     firstName: '', lastName: '', email: '', role: 'member' as UserRole,
@@ -115,15 +126,17 @@ export const AdminDashboardPage: React.FC = () => {
   });
 
   const [newCourse, setNewCourse] = useState({
-    title: '', description: '', fullDescription: '', category: 'dev' as any,
-    categoryLabel: 'Développement Web', level: 'Débutant' as any,
+    title: '',
+    description: '',
+    fullDescription: '',
+    category: 'dev' as any,
+    categoryLabel: 'Développement Web',
+    level: 'Débutant' as any,
     duration: '8 semaines (40h)',
     thumbnail: '',
-    videoUrl: '',
-    videoFile: null as File | null,
-    videoFileName: '',
-    instructorName: "Aïcha Diallo", instructorRole: 'Lead Engineer',
-    instructorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+    instructorName: "Yaniss-Elie Sey",
+    instructorRole: 'Lead Engineer',
+    instructorAvatar: '/assets/img.jpg',
     skills: 'React, TypeScript, Node.js'
   });
 
@@ -141,6 +154,11 @@ export const AdminDashboardPage: React.FC = () => {
     readTime: '5 min'
   });
 
+  // États pour l'upload vidéo
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
+  const [uploadingLessonIndex, setUploadingLessonIndex] = useState<number | null>(null);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -150,36 +168,35 @@ export const AdminDashboardPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>, lessonIndex: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Vérifier le type de fichier
     if (!file.type.startsWith('video/')) {
       showToast('Veuillez sélectionner un fichier vidéo.', 'error');
       return;
     }
 
-    // Vérifier la taille (max 150 Mo, largement suffisant pour des leçons de ~3 min)
     if (file.size > 150 * 1024 * 1024) {
-      showToast('La vidéo est trop volumineuse (max 150 Mo). Privilégiez des leçons courtes (~3 min).', 'error');
+      showToast('La vidéo est trop volumineuse (max 150 Mo).', 'error');
       return;
     }
 
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
-      showToast('Configuration Cloudinary manquante (variables VITE_CLOUDINARY_...).', 'error');
+      showToast('Configuration Cloudinary manquante.', 'error');
       return;
     }
 
-    // Aperçu local instantané pendant l'upload
-    setNewCourse(prev => ({
-      ...prev,
-      videoFile: file,
-      videoFileName: file.name,
-      videoUrl: URL.createObjectURL(file)
-    }));
-    setVideoSourceType('local');
+    // Mettre à jour l'aperçu local
+    const newLessons = [...courseLessons];
+    newLessons[lessonIndex].videoFile = file;
+    newLessons[lessonIndex].videoFileName = file.name;
+    newLessons[lessonIndex].videoUrl = URL.createObjectURL(file);
+    newLessons[lessonIndex].videoSource = 'local';
+    setCourseLessons(newLessons);
+    
     setIsUploadingVideo(true);
+    setUploadingLessonIndex(lessonIndex);
     setVideoUploadProgress(0);
 
     const formData = new FormData();
@@ -198,26 +215,26 @@ export const AdminDashboardPage: React.FC = () => {
 
     xhr.onload = () => {
       setIsUploadingVideo(false);
+      setUploadingLessonIndex(null);
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText);
-          setNewCourse(prev => ({
-            ...prev,
-            videoFile: file,
-            videoFileName: file.name,
-            videoUrl: data.secure_url as string
-          }));
+          const newLessons = [...courseLessons];
+          newLessons[lessonIndex].videoUrl = data.secure_url;
+          newLessons[lessonIndex].videoSource = 'local';
+          setCourseLessons(newLessons);
           showToast(`Vidéo "${file.name}" envoyée avec succès !`);
         } catch {
           showToast("Erreur lors de la lecture de la réponse Cloudinary.", 'error');
         }
       } else {
-        showToast("Échec de l'envoi de la vidéo. Vérifiez votre upload preset Cloudinary.", 'error');
+        showToast("Échec de l'envoi de la vidéo.", 'error');
       }
     };
 
     xhr.onerror = () => {
       setIsUploadingVideo(false);
+      setUploadingLessonIndex(null);
       showToast("Erreur réseau pendant l'envoi de la vidéo.", 'error');
     };
 
@@ -237,10 +254,78 @@ export const AdminDashboardPage: React.FC = () => {
     return null;
   };
 
-  const isCursaUrl = (url: string): boolean => {
-    return url.includes('cursa.app') || url.includes('cursa');
+  // Fonctions pour gérer les leçons
+  const addLesson = () => {
+    setCourseLessons(prev => [...prev, {
+      id: `lesson-${Date.now()}-${prev.length}`,
+      title: `Leçon ${prev.length + 1}`,
+      duration: '30 min',
+      videoUrl: '',
+      videoSource: 'none',
+      content: '',
+      quiz: [],
+      passingScore: 90,
+      order: prev.length
+    }]);
   };
 
+  const removeLesson = (index: number) => {
+    if (courseLessons.length <= 1) {
+      showToast('Un cours doit avoir au moins une leçon.', 'error');
+      return;
+    }
+    setCourseLessons(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateLesson = (index: number, field: string, value: any) => {
+    const newLessons = [...courseLessons];
+    newLessons[index] = { ...newLessons[index], [field]: value };
+    setCourseLessons(newLessons);
+  };
+
+  const addQuestionToLesson = (lessonIndex: number) => {
+    const newLessons = [...courseLessons];
+    if (!newLessons[lessonIndex].quiz) {
+      newLessons[lessonIndex].quiz = [];
+    }
+    newLessons[lessonIndex].quiz!.push({
+      id: `q-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      explanation: ''
+    });
+    setCourseLessons(newLessons);
+  };
+
+  const removeQuestionFromLesson = (lessonIndex: number, questionIndex: number) => {
+    const newLessons = [...courseLessons];
+    if (newLessons[lessonIndex].quiz) {
+      newLessons[lessonIndex].quiz = newLessons[lessonIndex].quiz!.filter((_, i) => i !== questionIndex);
+    }
+    setCourseLessons(newLessons);
+  };
+
+  const updateQuestion = (lessonIndex: number, questionIndex: number, field: string, value: any) => {
+    const newLessons = [...courseLessons];
+    if (newLessons[lessonIndex].quiz) {
+      newLessons[lessonIndex].quiz![questionIndex] = {
+        ...newLessons[lessonIndex].quiz![questionIndex],
+        [field]: value
+      };
+    }
+    setCourseLessons(newLessons);
+  };
+
+  const updateQuestionOption = (lessonIndex: number, questionIndex: number, optionIndex: number, value: string) => {
+    const newLessons = [...courseLessons];
+    if (newLessons[lessonIndex].quiz) {
+      newLessons[lessonIndex].quiz![questionIndex].options[optionIndex] = value;
+    }
+    setCourseLessons(newLessons);
+  };
+
+  // Fonctions de création
   const createUser = (e: React.FormEvent) => {
     e.preventDefault();
     addUserAdmin({
@@ -268,44 +353,43 @@ export const AdminDashboardPage: React.FC = () => {
 
     const courseId = `course-${Date.now()}`;
 
-    let thumbnail = newCourse.thumbnail;
-    const videoUrl = newCourse.videoUrl;
+    // Créer les leçons avec leurs IDs
+    const lessons: Lesson[] = courseLessons.map((lesson, index) => ({
+      id: lesson.id || `lesson-${Date.now()}-${index}`,
+      courseId,
+      title: lesson.title || `Leçon ${index + 1}`,
+      duration: lesson.duration || '30 min',
+      videoUrl: lesson.videoUrl || '',
+      videoSource: lesson.videoSource || 'none',
+      content: lesson.content || '',
+      quiz: lesson.quiz || [],
+      passingScore: lesson.passingScore || 90,
+      order: index
+    }));
 
-    // Si c'est YouTube, générer la miniature
-    if (videoSourceType === 'youtube' && newCourse.videoUrl) {
-      const videoId = extractYouTubeId(newCourse.videoUrl);
-      if (videoId) {
-        thumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-      }
-    }
-
-    // On exclut les champs internes à l'UI (File brut, nom de fichier, string skills)
-    // qui ne doivent JAMAIS être envoyés tels quels à Firestore : un objet File
-    // n'est pas sérialisable et fait planter setDoc(), ce qui bloquait le bouton
-    // "Confirmer" sans message d'erreur visible.
-    const { videoFile, videoFileName, skills, ...courseFields } = newCourse;
-
-    addCourseAdmin({
+    const newCourseData: Course = {
       id: courseId,
-      ...courseFields,
-      thumbnail: thumbnail || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
-      videoUrl: videoUrl || '',
-      videoSource: videoSourceType,
-      modulesCount: 5,
+      title: newCourse.title,
+      description: newCourse.description,
+      fullDescription: newCourse.fullDescription || newCourse.description,
+      category: newCourse.category,
+      categoryLabel: newCourse.categoryLabel,
+      level: newCourse.level,
+      duration: newCourse.duration,
+      modulesCount: courseLessons.length,
+      thumbnail: newCourse.thumbnail || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
+      instructorId: `instructor-${Date.now()}`,
+      instructorName: newCourse.instructorName,
+      instructorRole: newCourse.instructorRole,
+      instructorAvatar: newCourse.instructorAvatar,
+      videoSource: 'none',
       rating: 5.0,
       enrolledCount: 1,
-      skillsAcquired: skills.split(',').map(s => s.trim()),
-      lessons: [{
-        id: `l-${Date.now()}-1`,
-        courseId,
-        title: 'Introduction',
-        duration: '30 min',
-        videoUrl: videoUrl || '',
-        videoSource: videoSourceType,
-        content: 'Bienvenue dans ce cours.',
-        order: 1
-      }]
-    } as unknown as Course);
+      lessons,
+      skillsAcquired: newCourse.skills.split(',').map(s => s.trim())
+    };
+
+    addCourseAdmin(newCourseData);
 
     setModals(prev => ({ ...prev, course: false }));
     setNewCourse({
@@ -313,14 +397,22 @@ export const AdminDashboardPage: React.FC = () => {
       categoryLabel: 'Développement Web', level: 'Débutant' as any,
       duration: '8 semaines (40h)',
       thumbnail: '',
-      videoUrl: '',
-      videoFile: null,
-      videoFileName: '',
-      instructorName: "Aïcha Diallo", instructorRole: 'Lead Engineer',
-      instructorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+      instructorName: "Yaniss-Elie Sey ",
+      instructorRole: 'Lead Engineer',
+      instructorAvatar: '/assets/img.jpg',
       skills: 'React, TypeScript, Node.js'
     });
-    setVideoSourceType('none');
+    setCourseLessons([{
+      id: `lesson-${Date.now()}-0`,
+      title: 'Introduction',
+      duration: '30 min',
+      videoUrl: '',
+      videoSource: 'none',
+      content: 'Bienvenue dans ce cours.',
+      quiz: [],
+      passingScore: 90,
+      order: 0
+    }]);
     setVideoUploadProgress(0);
     showToast('Formation créée avec succès !');
   };
@@ -384,15 +476,14 @@ export const AdminDashboardPage: React.FC = () => {
     { id: 'partners', label: 'Partenaires', icon: Handshake, badge: pendingPartners },
     { id: 'settings', label: 'Paramètres', icon: Settings }
   ];
-
-  const renderOverview = () => (
+    const renderOverview = () => (
     <div className="space-y-10">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Total Membres', value: allUsers.length, icon: Users },
           { label: 'Formations', value: courses.length, icon: BookOpen },
           { label: 'Événements', value: events.length, icon: Calendar },
-          { label: 'Diplômes Certifiés', value: certificates.length , icon: Award }
+          { label: 'Diplômes Certifiés', value: certificates.length, icon: Award }
         ].map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-3xl border border-rose-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
@@ -488,7 +579,7 @@ export const AdminDashboardPage: React.FC = () => {
       <div className="overflow-x-auto rounded-2xl border border-rose-200">
         <table className="w-full text-left text-sm">
           <thead className="bg-rose-50 text-rose-600 uppercase text-xs font-extrabold tracking-wider">
-            <tr><th className="p-4">Intitulé</th><th className="p-4">Catégorie</th><th className="p-4">Source</th><th className="p-4">Inscrites</th><th className="p-4 text-right">Actions</th></tr>
+            <tr><th className="p-4">Intitulé</th><th className="p-4">Catégorie</th><th className="p-4">Leçons</th><th className="p-4">Inscrites</th><th className="p-4 text-right">Actions</th></tr>
           </thead>
           <tbody className="divide-y divide-rose-100">
             {courses.map(c => (
@@ -500,11 +591,7 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 </td>
                 <td className="p-4 text-rose-500 font-bold">{c.categoryLabel}</td>
-                <td className="p-4">
-                  {c.videoSource === 'youtube' && <Youtube className="w-5 h-5 text-red-500" />}
-                  {c.videoSource === 'local' && <Film className="w-5 h-5 text-green-500" />}
-                  {(!c.videoSource || c.videoSource === 'none') && <span className="text-gray-400 text-xs">Non définie</span>}
-                </td>
+                <td className="p-4 text-gray-700">{c.lessons.length} leçons</td>
                 <td className="p-4 font-bold text-gray-900">{c.enrolledCount}</td>
                 <td className="p-4 text-right">
                   <button onClick={() => deleteCourseAdmin(c.id)} className="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors">
@@ -653,14 +740,13 @@ export const AdminDashboardPage: React.FC = () => {
       default: return null;
     }
   };
-
-  return (
+    return (
     <div className="min-h-screen bg-rose-50/30 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden bg-white text-gray-900 px-4 py-4 flex items-center justify-between border-b border-rose-200">
         <div className="flex items-center gap-3 font-black">
           <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-white">
-                                        <img src="/assets/ai.jpeg" alt="IT-LeadHER" className="w-14 h-15 object-contain rounded-4xl" />
+            <img src="/assets/logo.jpeg" alt="IT-LeadHER" className="w-10 h-10 object-contain" />
           </div>
           <span className="text-base">Admin</span>
         </div>
@@ -674,7 +760,7 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="p-6 space-y-6 overflow-y-auto">
           <div className="flex items-center gap-3 pb-6 border-b border-rose-200">
             <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center text-white">
-                <img src="/assets/logo.jpeg" alt="IT-LeadHER" className="w-10 h-10 object-contain" />
+              <img src="/assets/logo.jpeg" alt="IT-LeadHER" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <div className="text-sm font-black text-gray-900">IT-LeadHER</div>
@@ -744,7 +830,7 @@ export const AdminDashboardPage: React.FC = () => {
         {renderContent()}
       </main>
 
-      {/* MODAL: Créer une formation avec plusieurs sources vidéo */}
+      {/* MODAL: Créer une formation */}
       <Modal isOpen={modals.course} onClose={() => setModals(prev => ({ ...prev, course: false }))} title="Créer une formation" onSubmit={createCourse}>
         <InputField label="Titre du cours" value={newCourse.title} onChange={(e: any) => setNewCourse({ ...newCourse, title: e.target.value })} />
         <InputField label="Description courte" value={newCourse.description} onChange={(e: any) => setNewCourse({ ...newCourse, description: e.target.value, fullDescription: e.target.value })} />
@@ -759,155 +845,237 @@ export const AdminDashboardPage: React.FC = () => {
           <InputField label="Instructeur" value={newCourse.instructorName} onChange={(e: any) => setNewCourse({ ...newCourse, instructorName: e.target.value })} />
         </div>
 
-        {/* Sélection de la source vidéo */}
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-gray-700">Source de la vidéo</label>
-          <div className="flex gap-3 flex-wrap">
+        {/* Liste des leçons */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-gray-700">Leçons du cours</span>
             <button
               type="button"
-              onClick={() => setVideoSourceType('youtube')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
-                videoSourceType === 'youtube' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              onClick={addLesson}
+              className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition-colors"
             >
-              <Youtube className="w-4 h-4" />
-              YouTube
-            </button>
-            <button
-              type="button"
-              onClick={() => setVideoSourceType('cursa')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
-                videoSourceType === 'cursa' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Link className="w-4 h-4" />
-              Cursa.app
-            </button>
-            <button
-              type="button"
-              onClick={() => setVideoSourceType('local')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
-                videoSourceType === 'local' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Film className="w-4 h-4" />
-              Téléphone
-            </button>
-            <button
-              type="button"
-              onClick={() => setVideoSourceType('none')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${
-                videoSourceType === 'none' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              Aucune
+              + Ajouter une leçon
             </button>
           </div>
-        </div>
 
-        {/* Champ selon la source */}
-        {videoSourceType === 'youtube' && (
-          <InputField 
-            label="URL YouTube (ex: https://www.youtube.com/watch?v=XXXXX)" 
-            value={newCourse.videoUrl} 
-            onChange={(e: any) => {
-              const url = e.target.value;
-              setNewCourse({ ...newCourse, videoUrl: url });
-              const videoId = extractYouTubeId(url);
-              if (videoId) {
-                setNewCourse(prev => ({ ...prev, thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` }));
-              }
-            }}
-            placeholder="https://www.youtube.com/watch?v=..."
-            icon={Youtube}
-          />
-        )}
-
-        {videoSourceType === 'cursa' && (
-          <InputField 
-            label="Lien Cursa.app" 
-            value={newCourse.videoUrl} 
-            onChange={(e: any) => setNewCourse({ ...newCourse, videoUrl: e.target.value })}
-            placeholder="https://cursa.app/video/..."
-            icon={Link}
-          />
-        )}
-
-        {videoSourceType === 'local' && (
-          <div className="space-y-2">
-            <label className="block text-sm font-bold text-gray-700">Choisir une vidéo depuis votre appareil</label>
-            <div className="flex items-center gap-4">
-              <label className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-dashed border-rose-200 hover:border-rose-300 text-sm font-bold text-gray-700 transition-all ${isUploadingVideo ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
-                <Upload className="w-5 h-5 text-rose-400" />
-                <span>{newCourse.videoFileName || 'Choisir une vidéo (MP4, WebM — leçons courtes ~3 min)'}</span>
-                <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={isUploadingVideo} className="hidden" />
-              </label>
-              {newCourse.videoFileName && !isUploadingVideo && (
+          {courseLessons.map((lesson, lessonIdx) => (
+            <div key={lessonIdx} className="border border-rose-200 rounded-xl p-4 space-y-3 bg-rose-50/30">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-gray-800">Leçon {lessonIdx + 1}</h4>
                 <button
                   type="button"
-                  onClick={() => {
-                    setNewCourse({ ...newCourse, videoFile: null, videoFileName: '', videoUrl: '' });
-                    setVideoSourceType('none');
-                    setVideoUploadProgress(0);
-                  }}
-                  className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold transition-colors"
+                  onClick={() => removeLesson(lessonIdx)}
+                  className="text-red-500 hover:text-red-700 text-xs font-bold"
                 >
-                  ✕ Supprimer
+                  Supprimer
                 </button>
-              )}
-            </div>
-
-            {isUploadingVideo && (
-              <div className="bg-rose-50 p-3 rounded-xl border border-rose-200 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-rose-600">
-                  <span>Envoi vers Cloudinary...</span>
-                  <span>{videoUploadProgress}%</span>
-                </div>
-                <div className="w-full h-2 bg-rose-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-rose-500 rounded-full transition-all duration-200"
-                    style={{ width: `${videoUploadProgress}%` }}
+              </div>
+              
+              <InputField 
+                label="Titre" 
+                value={lesson.title} 
+                onChange={(e: any) => updateLesson(lessonIdx, 'title', e.target.value)} 
+              />
+              
+              <div className="grid grid-cols-2 gap-3">
+                <InputField 
+                  label="Durée" 
+                  value={lesson.duration} 
+                  onChange={(e: any) => updateLesson(lessonIdx, 'duration', e.target.value)} 
+                />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-bold text-gray-700">Score requis (%)</label>
+                  <input
+                    type="number"
+                    min="50"
+                    max="100"
+                    value={lesson.passingScore || 90}
+                    onChange={(e) => updateLesson(lessonIdx, 'passingScore', parseInt(e.target.value) || 90)}
+                    className="w-full p-3 rounded-xl border border-rose-200 text-sm focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition-all"
                   />
                 </div>
               </div>
-            )}
 
-            {!isUploadingVideo && newCourse.videoFile && newCourse.videoUrl && !newCourse.videoUrl.startsWith('blob:') && (
-              <div className="bg-green-50 p-3 rounded-xl border border-green-200">
-                <p className="text-xs text-green-700">
-                  ✅ Vidéo envoyée : <span className="font-bold">{newCourse.videoFileName}</span>
-                  <br />
-                  Taille : {(newCourse.videoFile.size / (1024 * 1024)).toFixed(2)} Mo — hébergée sur Cloudinary
-                </p>
+              {/* Source vidéo */}
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-gray-700">Source vidéo</label>
+                <div className="flex gap-2 flex-wrap">
+                  {['youtube', 'cursa', 'local', 'none'].map(source => (
+                    <button
+                      key={source}
+                      type="button"
+                      onClick={() => updateLesson(lessonIdx, 'videoSource', source)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        lesson.videoSource === source ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {source === 'youtube' && <Youtube className="w-3 h-3 inline mr-1" />}
+                      {source === 'cursa' && <Link className="w-3 h-3 inline mr-1" />}
+                      {source === 'local' && <Film className="w-3 h-3 inline mr-1" />}
+                      {source.charAt(0).toUpperCase() + source.slice(1)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Aperçu miniature */}
-        {newCourse.thumbnail && newCourse.videoUrl && videoSourceType !== 'local' && (
-          <div className="bg-rose-50 p-3 rounded-xl border border-rose-200">
-            <p className="text-xs font-bold text-rose-600 mb-2">Aperçu de la miniature :</p>
-            <img src={newCourse.thumbnail} alt="Miniature" className="w-40 h-24 object-cover rounded-lg border border-rose-200" />
-          </div>
-        )}
+              {lesson.videoSource === 'youtube' && (
+                <InputField 
+                  label="URL YouTube" 
+                  value={lesson.videoUrl} 
+                  onChange={(e: any) => {
+                    const url = e.target.value;
+                    updateLesson(lessonIdx, 'videoUrl', url);
+                  }}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  icon={Youtube}
+                />
+              )}
 
-        {videoSourceType === 'local' && newCourse.videoFile && (
-          <div className="bg-rose-50 p-3 rounded-xl border border-rose-200">
-            <p className="text-xs font-bold text-rose-600 mb-2">Aperçu vidéo :</p>
-            <video controls className="w-full max-h-48 rounded-lg border border-rose-200">
-              <source src={newCourse.videoUrl} type={newCourse.videoFile?.type} />
-              Votre navigateur ne supporte pas la lecture vidéo.
-            </video>
-          </div>
-        )}
+              {lesson.videoSource === 'cursa' && (
+                <InputField 
+                  label="Lien Cursa.app" 
+                  value={lesson.videoUrl} 
+                  onChange={(e: any) => updateLesson(lessonIdx, 'videoUrl', e.target.value)}
+                  placeholder="https://cursa.app/video/..."
+                  icon={Link}
+                />
+              )}
 
-        <ImageUpload label="Image de couverture (optionnel)" value={newCourse.thumbnail} onChange={(url: any) => setNewCourse({ ...newCourse, thumbnail: url })} onUpload={handleImageUpload} />
+              {lesson.videoSource === 'local' && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-gray-700">Choisir une vidéo</label>
+                  <div className="flex items-center gap-4">
+                    <label className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border-2 border-dashed border-rose-200 hover:border-rose-300 text-sm font-bold text-gray-700 transition-all ${isUploadingVideo && uploadingLessonIndex === lessonIdx ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}>
+                      <Upload className="w-5 h-5 text-rose-400" />
+                      <span>{lesson.videoFileName || 'Choisir une vidéo (MP4, WebM)'}</span>
+                      <input type="file" accept="video/*" onChange={e => handleVideoUpload(e, lessonIdx)} disabled={isUploadingVideo} className="hidden" />
+                    </label>
+                    {lesson.videoFileName && !isUploadingVideo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateLesson(lessonIdx, 'videoFile', null);
+                          updateLesson(lessonIdx, 'videoFileName', '');
+                          updateLesson(lessonIdx, 'videoUrl', '');
+                          updateLesson(lessonIdx, 'videoSource', 'none');
+                        }}
+                        className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold transition-colors"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {isUploadingVideo && uploadingLessonIndex === lessonIdx && (
+                    <div className="bg-rose-50 p-3 rounded-xl border border-rose-200 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-rose-600">
+                        <span>Envoi vers Cloudinary...</span>
+                        <span>{videoUploadProgress}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-rose-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-rose-500 rounded-full transition-all duration-200" style={{ width: `${videoUploadProgress}%` }} />
+                      </div>
+                    </div>
+                  )}
+
+                  {lesson.videoUrl && lesson.videoUrl.startsWith('http') && !lesson.videoUrl.startsWith('blob:') && (
+                    <div className="bg-green-50 p-2 rounded-xl border border-green-200">
+                      <p className="text-xs text-green-700">✅ Vidéo hébergée sur Cloudinary</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <InputField 
+                label="Contenu" 
+                rows={3}
+                value={lesson.content} 
+                onChange={(e: any) => updateLesson(lessonIdx, 'content', e.target.value)} 
+              />
+
+              {/* Quiz */}
+              <div className="mt-3 bg-purple-50 p-4 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-bold text-purple-700 flex items-center gap-2">
+                    <HelpCircle className="w-4 h-4" />
+                    Quiz de la leçon
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => addQuestionToLesson(lessonIdx)}
+                    className="px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold rounded-lg transition-colors"
+                  >
+                    + Ajouter une question
+                  </button>
+                </div>
+                
+                {(lesson.quiz || []).map((q, qIdx) => (
+                  <div key={qIdx} className="bg-white p-3 rounded-lg mt-2 space-y-2 border border-purple-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-purple-600">Question {qIdx + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeQuestionFromLesson(lessonIdx, qIdx)}
+                        className="text-red-400 hover:text-red-600 text-xs"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <InputField
+                      label="Question"
+                      value={q.question}
+                      onChange={(e: any) => updateQuestion(lessonIdx, qIdx, 'question', e.target.value)}
+                    />
+                    
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-gray-600">Options</label>
+                      {q.options.map((opt, optIdx) => (
+                        <div key={optIdx} className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-gray-500 w-5">{String.fromCharCode(65 + optIdx)}.</span>
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => updateQuestionOption(lessonIdx, qIdx, optIdx, e.target.value)}
+                            className="flex-1 p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-purple-400"
+                            placeholder={`Option ${optIdx + 1}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateQuestion(lessonIdx, qIdx, 'correctAnswer', optIdx)}
+                            className={`px-2 py-1 rounded-lg text-xs font-bold transition-colors ${
+                              q.correctAnswer === optIdx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                            }`}
+                          >
+                            {q.correctAnswer === optIdx ? <Check className="w-4 h-4" /> : '✓'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <InputField
+                      label="Explication"
+                      value={q.explanation}
+                      onChange={(e: any) => updateQuestion(lessonIdx, qIdx, 'explanation', e.target.value)}
+                      placeholder="Pourquoi cette réponse est correcte..."
+                    />
+                  </div>
+                ))}
+                
+                {(lesson.quiz || []).length === 0 && (
+                  <p className="text-xs text-gray-400 text-center py-2">Aucune question. Ajoutez-en une !</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <ImageUpload label="Image de couverture" value={newCourse.thumbnail} onChange={(url: any) => setNewCourse({ ...newCourse, thumbnail: url })} onUpload={handleImageUpload} />
         <ImageUpload label="Photo de l'instructeur" value={newCourse.instructorAvatar} onChange={(url: any) => setNewCourse({ ...newCourse, instructorAvatar: url })} onUpload={handleImageUpload} />
-        
         <InputField label="Compétences (séparées par des virgules)" value={newCourse.skills} onChange={(e: any) => setNewCourse({ ...newCourse, skills: e.target.value })} />
       </Modal>
 
+      {/* MODAL: Ajouter un utilisateur */}
       <Modal isOpen={modals.user} onClose={() => setModals(prev => ({ ...prev, user: false }))} title="Ajouter un Utilisateur" onSubmit={createUser}>
         <div className="grid grid-cols-2 gap-4">
           <InputField label="Prénom" value={newUser.firstName} onChange={(e: any) => setNewUser({ ...newUser, firstName: e.target.value })} />
@@ -926,6 +1094,7 @@ export const AdminDashboardPage: React.FC = () => {
         <ImageUpload label="Photo de profil" value={newUser.avatar} onChange={(url: any) => setNewUser({ ...newUser, avatar: url })} onUpload={handleImageUpload} />
       </Modal>
 
+      {/* MODAL: Créer un événement */}
       <Modal isOpen={modals.event} onClose={() => setModals(prev => ({ ...prev, event: false }))} title="Créer un Événement" onSubmit={createEvent}>
         <InputField label="Titre" value={newEvent.title} onChange={(e: any) => setNewEvent({ ...newEvent, title: e.target.value })} />
         <InputField label="Description" rows={3} value={newEvent.description} onChange={(e: any) => setNewEvent({ ...newEvent, description: e.target.value })} />
@@ -936,6 +1105,7 @@ export const AdminDashboardPage: React.FC = () => {
         <ImageUpload label="Image" value={newEvent.image} onChange={(url: any) => setNewEvent({ ...newEvent, image: url })} onUpload={handleImageUpload} />
       </Modal>
 
+      {/* MODAL: Créer un article */}
       <Modal isOpen={modals.article} onClose={() => setModals(prev => ({ ...prev, article: false }))} title="Rédiger un Article" onSubmit={createArticle}>
         <InputField label="Titre" value={newArticle.title} onChange={(e: any) => setNewArticle({ ...newArticle, title: e.target.value })} />
         <InputField label="Résumé" value={newArticle.summary} onChange={(e: any) => setNewArticle({ ...newArticle, summary: e.target.value })} />
@@ -944,4 +1114,4 @@ export const AdminDashboardPage: React.FC = () => {
       </Modal>
     </div>
   );
-};
+}; 

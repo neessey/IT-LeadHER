@@ -1,118 +1,9 @@
 import { Course, Event, Mentor, Article, Partner, Testimonial, TeamMember, User } from '../types';
 
 export const initialCourses: Course[] = [
+  
   {
     id: 'course-1',
-    title: 'Développement Web Full-Stack React & Node.js',
-    description: 'Maîtrisez le développement web moderne, de la création d\'interfaces réactives React au déploiement d\'API REST sécurisées.',
-    fullDescription: 'Ce programme complet de 12 semaines vous apprend à concevoir et déployer des applications web professionnelles de bout en bout. Vous apprendrez TypeScript, React, Tailwind CSS, Node.js, Express et les bases de données MongoDB / PostgreSQL. Chaque module inclut des travaux pratiques guidés et un projet fil rouge.',
-    category: 'dev',
-    categoryLabel: 'Développement Web',
-    level: 'Débutant',
-    duration: '12 semaines (60h)',
-    modulesCount: 8,
-    thumbnail: 'https://img.youtube.com/vi/1-3N7B6tE9k/mqdefault.jpg',
-    videoUrl: 'https://www.youtube.com/embed/1-3N7B6tE9k',
-    instructorId: 'inst-1',
-    instructorName: 'Aïcha Diallo',
-    instructorRole: 'Lead Frontend Engineer @ TechAfrique',
-    instructorAvatar: 'https://www.hs-coburg.de/wp-content/uploads/2024/03/person-silhouette-2.jpg',
-    rating: 4.9,
-    enrolledCount: 342,
-    isFeatured: true,
-    skillsAcquired: ['HTML5/CSS3', 'JavaScript ES6+', 'TypeScript', 'React.js', 'Node.js/Express', 'Git & GitHub'],
-    lessons: [
-      {
-        id: 'c1-l1',
-        courseId: 'course-1',
-        title: 'Introduction au Web Moderne et Architecture Client-Serveur',
-        duration: '25 min',
-        videoUrl: 'https://www.youtube.com/embed/1-3N7B6tE9k',
-        content: `Bienvenue dans le premier module du cours Full-Stack IT-LeadHER.
-        
- Concepts clés du Web Client-Serveur
-Le Web moderne repose sur l'architecture client-serveur. Le navigateur (Client) envoie une requête HTTP à un serveur qui traite la demande et renvoie des données (HTML, JSON, etc.).
-
- Les langages du Web :
-1. HTML5 : Structure sémantique du document.
-2. CSS3 : Styles visuels, grilles flexbox/grid et responsive design.
-3. JavaScript (ES6+) : Logique d'interaction et dynamisme.`,
-        quiz: [
-          {
-            id: 'q1-1',
-            question: 'Quel rôle joue HTML5 dans une application web ?',
-            options: ['Définir la structure sémantique', 'Gérer la base de données', 'Styliser les couleurs', 'Compiler le code C++'],
-            correctAnswer: 0,
-            explanation: 'HTML5 est le langage de balisage qui définit la structure et le squelette d\'une page web.'
-          },
-          {
-            id: 'q1-2',
-            question: 'Quelle méthode HTTP est utilisée pour envoyer de nouvelles données à un serveur ?',
-            options: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-            correctAnswer: 1,
-            explanation: 'La méthode POST sert à transmettre des données vers le serveur pour créer une ressource.'
-          }
-        ],
-        order: 1
-      },
-      {
-        id: 'c1-l2',
-        courseId: 'course-1',
-        title: 'Les fondamentaux de React : Composants, Props & State',
-        duration: '40 min',
-        videoUrl: 'https://www.youtube.com/embed/Ke90Tje7VS0',
-        content: `React est une bibliothèque JavaScript déclarative développée par Meta pour créer des interfaces utilisateur modulaires.
-
- Composants Fonctionnels et JSX
-Un composant React est une fonction JavaScript qui retourne un élément JSX.
-
-\`\`\`tsx
-interface GreetingProps {
-  name: string;
-}
-
-export function Greeting({ name }: GreetingProps) {
-  return <h1>Bonjour, {name} ! Bienvenue sur IT-LeadHER.</h1>;
-}
-\`\`\`
-
-### Le Hook useState
-Le Hook \`useState\` permet d'ajouter un état local réactif à un composant.`,
-        quiz: [
-          {
-            id: 'q2-1',
-            question: 'À quoi sert le Hook useState dans React ?',
-            options: ['Créer une base de données', 'Déclarer un état réactif dans un composant', 'Effectuer des requêtes CSS', 'Gérer les routes du serveur'],
-            correctAnswer: 1,
-            explanation: 'useState permet de conserver et mettre à jour l\'état d\'un composant React au fil du temps.'
-          }
-        ],
-        order: 2
-      },
-      {
-        id: 'c1-l3',
-        courseId: 'course-1',
-        title: 'Création d\'une API REST avec Express & TypeScript',
-        duration: '45 min',
-        videoUrl: 'https://www.youtube.com/embed/0m_PvB8pMzg',
-        content: `Dans cette leçon, nous allons construire notre première API backend sécurisée en utilisant Node.js et Express avec TypeScript.
-
- Structure d'une route Express :
-\`\`\`typescript
-import express from 'express';
-const app = express();
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', organization: 'IT-LeadHER' });
-});
-\`\`\``,
-        order: 3
-      }
-    ],
-    videoSource: 'youtube'
-  },
-  {
-    id: 'course-2',
     title: 'Data Science & Analyse de Données avec Python',
     description: 'Apprenez à manipuler, analyser et visualiser des données massives avec Python, Pandas, NumPy et Seaborn.',
     fullDescription: 'La donnée est le nouvel or noir de l\'économie numérique. Ce cours vous donne les clés pour devenir Data Analyst / Data Scientist. Vous manipulerez des datasets réels, concevrez des tableaux de bord prédictifs et présenterez vos insights avec impact.',
@@ -133,15 +24,15 @@ app.get('/api/health', (req, res) => {
     skillsAcquired: ['Python 3', 'Pandas & NumPy', 'Visualisation (Matplotlib/Seaborn)', 'Statistiques Descriptives', 'SQL', 'Jupyter Notebooks'],
     lessons: [
       {
-        id: 'c2-l1',
-        courseId: 'course-2',
+        id: 'c1-l1',
+        courseId: 'course-1',
         title: 'Introduction au langage Python pour la Data Science',
         duration: '30 min',
         videoUrl: 'https://www.youtube.com/embed/0P_A0m_MsR4',
         content: 'Python est le langage n°1 des données. Nous aborderons les structures de données (Listes, Dictionnaires) et les boucles.',
         quiz: [
           {
-            id: 'q21-1',
+            id: 'q1-1',
             question: 'Quelle bibliothèque Python est la référence pour la manipulation de tableaux de données ?',
             options: ['Pandas', 'Flask', 'Django', 'React'],
             correctAnswer: 0,

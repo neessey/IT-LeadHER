@@ -58,14 +58,15 @@ export interface Lesson {
   title: string;
   duration: string;
   videoUrl?: string;
+  videoSource?: 'youtube' | 'cursa' | 'local' | 'none';
   content: string;
   pdfUrl?: string;
   quiz?: QuizQuestion[];
   order: number;
+  passingScore?: number;
 }
 
 export interface Course {
-  videoSource: 'youtube' | 'cursa' | 'local' | 'none';
   id: string;
   title: string;
   description: string;
@@ -81,6 +82,7 @@ export interface Course {
   instructorRole: string;
   instructorAvatar: string;
   videoUrl?: string;
+  videoSource?: 'youtube' | 'cursa' | 'local' | 'none';
   rating: number;
   enrolledCount: number;
   lessons: Lesson[];
@@ -92,12 +94,16 @@ export interface Enrollment {
   id: string;
   userId: string;
   courseId: string;
-  progress: number; // 0 to 100
+  progress: number;
   status: 'enrolled' | 'completed';
   completedLessonIds: string[];
   certificateId?: string;
   enrolledAt: string;
   updatedAt: string;
+  lessonScores?: Record<string, number>;
+  lessonValidated?: Record<string, boolean>;
+  overallScore?: number;
+  certificateObtainedAt?: string;
 }
 
 export interface Certificate {

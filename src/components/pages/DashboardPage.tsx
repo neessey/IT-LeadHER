@@ -22,10 +22,15 @@ import {
   BarChart3,
   Target,
   ChevronRight,
-  Loader2
+  Loader2,
+  Trophy,
+  GraduationCap,
+  Star,
+  TrendingUp,
+  FileText,
+  ExternalLink,
+  ZoomIn
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { downloadCertificate } from '../../utils/CertificateGenerator';
 
 const DEFAULT_AVATAR = 'https://www.hs-coburg.de/wp-content/uploads/2024/03/person-silhouette-2.jpg';
@@ -42,10 +47,11 @@ export const DashboardPage: React.FC = () => {
     setActiveTab,
     updateUserProfile,
     showToast,
-    t
+    t,
+    getCourseProgress
   } = useApp();
 
-  const [activeTabSection, setActiveTabSection] = useState<'overview' | 'settings'>('overview');
+  const [activeTabSection, setActiveTabSection] = useState<'overview' | 'certificates' | 'settings'>('overview');
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -63,10 +69,8 @@ export const DashboardPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [downloadingCertId, setDownloadingCertId] = useState<string | null>(null);
-
-  // Référence pour le certificat à télécharger
-  const certRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const [selectedCertForView, setSelectedCertForView] = useState<any | null>(null);
 
   useEffect(() => {
     if (currentUser) {
@@ -90,6 +94,26 @@ export const DashboardPage: React.FC = () => {
   const myCertificates = certificates.filter(c => c.userId === currentUser.id);
   const myEvents = events.filter(e => e.isRegistered);
 
+  // Calculer les statistiques avancées
+  const totalLessonsCompleted = myEnrollments.reduce((acc, e) => acc + e.completedLessonIds.length, 0);
+  const totalLessons = myEnrollments.reduce((acc, e) => {
+    const course = courses.find(c => c.id === e.courseId);
+    return acc + (course?.lessons.length || 0);
+  }, 0);
+  const overallProgress = totalLessons > 0 ? Math.round((totalLessonsCompleted / totalLessons) * 100) : 0;
+
+  // Certificats avec plus d'informations
+  const enrichedCertificates = myCertificates.map(cert => {
+    const course = courses.find(c => c.id === cert.courseId);
+    const enrollment = myEnrollments.find(e => e.courseId === cert.courseId);
+    return {
+      ...cert,
+      course,
+      score: enrollment?.overallScore || 0,
+      progress: enrollment?.progress || 0
+    };
+  });
+
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -105,6 +129,7 @@ export const DashboardPage: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
+
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword && newPassword !== confirmPassword) {
@@ -130,36 +155,138 @@ export const DashboardPage: React.FC = () => {
       setIsSaving(false);
     }
   };
-const [isDownloading, setIsDownloading] = useState<string | null>(null);
 
-const handleDownloadCertificate = async (cert: any) => {
-  if (isDownloading) return;
-  setIsDownloading(cert.id);
-  
-  try {
-    const success = await downloadCertificate(cert);
-    if (success) {
-      showToast('Certificat téléchargé avec succès !', 'success');
-    } else {
+  const handleDownloadCertificate = async (cert: any) => {
+    if (isDownloading) return;
+    setIsDownloading(cert.id);
+    
+    try {
+      const success = await downloadCertificate(cert);
+      if (success) {
+        showToast('Certificat téléchargé avec succès !', 'success');
+      } else {
+        showToast('Erreur lors du téléchargement.', 'error');
+      }
+    } catch (error) {
       showToast('Erreur lors du téléchargement.', 'error');
+    } finally {
+      setIsDownloading(null);
     }
-  } catch (error) {
-    showToast('Erreur lors du téléchargement.', 'error');
-  } finally {
-    setIsDownloading(null);
-  }
-};
-  
+  };
+
+  const handleViewCertificate = (cert: any) => {
+    setSelectedCertForView(cert);
+    setSelectedCertificate(cert);
+    setActiveTab('certificate');
+  };
+
+  // Composant pour afficher une carte de certificat
+  const CertificateCard = ({ cert }: { cert: any }) => (
+    <div className="group bg-gradient-to-br from-rose-50 to-white border border-rose-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:border-rose-200">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Award className="w-5 h-5 text-rose-500" />
+            <span className="text-xs font-bold text-rose-500 uppercase tracking-wider">Certificat</span>
+            {cert.score >= 95 && (
+              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">
+                Excellence
+              </span>
+            )}
+          </div>
+          <h3 className="font-bold text-gray-900 text-base">{cert.courseTitle}</h3>
+          <p className="text-sm text-gray-500 mt-1">{cert.userName}</p>
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+            <span>Délivré le {cert.issueDate}</span>
+            <span className="flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+              {cert.score}%
+            </span>
+            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">
+              ✓ Validé
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 ml-4">
+          <button
+            onClick={() => handleViewCertificate(cert)}
+            className="p-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-600 transition-colors"
+            title="Voir le certificat"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDownloadCertificate(cert)}
+            disabled={isDownloading === cert.id}
+            className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50"
+            title="Télécharger"
+          >
+            {isDownloading === cert.id ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      </div>
+      {/* Barre de progression du score */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <span>Score</span>
+          <span className="font-bold text-gray-700">{cert.score}%</span>
+        </div>
+        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-rose-400  rounded-full transition-all duration-500"
+            style={{ width: `${cert.score}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-white pb-16 pt-8">
+    <div className="min-h-screen bg-gray-50/50 pb-16 pt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
+        {/* En-tête avec bienvenue */}
+        <div className="bg-rose-500 rounded-3xl p-8 text-white shadow-lg">
+          <div className="flex items-center gap-4">
+            <img
+              src={profileData.avatar || DEFAULT_AVATAR}
+              alt={currentUser.firstName}
+              className="w-20 h-20 rounded-full object-cover border-4 border-white/30"
+            />
+            <div>
+              <h1 className="text-2xl font-bold">
+                Bonjour, {currentUser.firstName} ! 👋
+              </h1>
+              <p className="text-rose-100 text-sm mt-1">
+                {currentUser.role === 'admin' ? 'Administratrice' : 'Membre'} • {currentUser.email}
+              </p>
+              <div className="flex items-center gap-3 mt-2 text-xs text-rose-100">
+                <span className="flex items-center gap-1">
+                  <BookOpen className="w-3 h-3" />
+                  {myEnrollments.length} formation{myEnrollments.length > 1 ? 's' : ''}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  {myCertificates.length} certificat{myCertificates.length > 1 ? 's' : ''}
+                </span>
+                <span className="flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  {overallProgress}% de progression globale
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Navigation tabs */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+        <div className="flex flex-wrap items-center gap-2 bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100">
           <button
             onClick={() => setActiveTabSection('overview')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
               activeTabSection === 'overview'
                 ? 'bg-rose-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -169,8 +296,24 @@ const handleDownloadCertificate = async (cert: any) => {
             <span>Mes Formations</span>
           </button>
           <button
+            onClick={() => setActiveTabSection('certificates')}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
+              activeTabSection === 'certificates'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Award className="w-4 h-4" />
+            <span>Mes Certificats</span>
+            {myCertificates.length > 0 && (
+              <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-full text-xs">
+                {myCertificates.length}
+              </span>
+            )}
+          </button>
+          <button
             onClick={() => setActiveTabSection('settings')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
               activeTabSection === 'settings'
                 ? 'bg-rose-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-gray-100'
@@ -181,19 +324,21 @@ const handleDownloadCertificate = async (cert: any) => {
           </button>
         </div>
 
-        {activeTabSection === 'overview' ? (
+        {activeTabSection === 'overview' && (
           /* OVERVIEW */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             {/* Colonne principale */}
             <div className="lg:col-span-2 space-y-8">
               
-              {/* Formations */}
-              <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+        
+
+              {/* Formations en cours */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-rose-600" />
-                    <span>Mes formations ({myEnrollments.length})</span>
+                    <span>Mes formations en cours</span>
                   </h2>
                   <button
                     onClick={() => setActiveTab('academy')}
@@ -217,42 +362,106 @@ const handleDownloadCertificate = async (cert: any) => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {myEnrollments.slice(0, 3).map(enr => {
+                    {myEnrollments.map(enr => {
                       const course = courses.find(c => c.id === enr.courseId);
                       if (!course) return null;
+                      const progress = enr.progress || 0;
 
                       return (
-                        <div key={enr.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-rose-200 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <img src={course.thumbnail} alt={course.title} className="w-16 h-16 rounded-xl object-cover shrink-0" />
-                            <div>
-                              <div className="text-sm font-bold text-gray-900">{course.title}</div>
-                              <div className="text-xs text-gray-500 mt-0.5">
-                                {enr.completedLessonIds.length}/{course.lessons.length} leçons
-                              </div>
-                              <div className="w-32 h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
-                                <div className="h-full bg-rose-600 rounded-full" style={{ width: `${enr.progress}%` }} />
+                        <div key={enr.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50 hover:border-rose-200 hover:bg-rose-50/30 transition-all duration-200">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                              <img src={course.thumbnail} alt={course.title} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-bold text-gray-900 truncate">{course.title}</div>
+                                <div className="text-xs text-gray-500 mt-0.5">
+                                  {enr.completedLessonIds.length}/{course.lessons.length} leçons
+                                </div>
+                                <div className="w-full sm:w-48 h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                                  <div 
+                                    className="h-full bg-rose-600 rounded-full transition-all duration-500"
+                                    style={{ width: `${progress}%` }}
+                                  />
+                                </div>
                               </div>
                             </div>
+                            <button
+                              onClick={() => navigateToCourse(course.id)}
+                              className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition-colors shrink-0 w-full sm:w-auto flex items-center justify-center gap-2"
+                            >
+                              <span>Continuer</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => navigateToCourse(course.id)}
-                            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition-colors shrink-0"
-                          >
-                            Continuer ({enr.progress}%)
-                          </button>
                         </div>
                       );
                     })}
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Colonne latérale */}
+            <div className="space-y-8">
+              
+              {/* Derniers certificats */}
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
+                  <Award className="w-5 h-5 text-amber-500" />
+                  <span>Derniers certificats</span>
+                </h2>
+
+                {myCertificates.length === 0 ? (
+                  <div className="text-center py-6">
+                    <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">
+                      Terminez une formation pour obtenir votre premier certificat.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {myCertificates.slice(0, 2).map(cert => {
+                      const course = courses.find(c => c.id === cert.courseId);
+                      return (
+                        <div key={cert.id} className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-100">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">{cert.courseTitle}</div>
+                              <div className="text-xs text-gray-500 mt-0.5">{cert.issueDate}</div>
+                              {course && (
+                                <div className="text-xs text-emerald-600 font-medium mt-1">
+                                  ✓ Formation terminée
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleViewCertificate(cert)}
+                              className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {myCertificates.length > 2 && (
+                      <button
+                        onClick={() => setActiveTabSection('certificates')}
+                        className="text-sm font-medium text-rose-600 hover:text-rose-700 flex items-center justify-center gap-1 w-full py-2"
+                      >
+                        Voir tous les certificats
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Événements */}
-              <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
                   <Calendar className="w-5 h-5 text-amber-600" />
-                  <span>Mes événements ({myEvents.length})</span>
+                  <span>Événements</span>
                 </h2>
 
                 {myEvents.length === 0 ? (
@@ -260,12 +469,12 @@ const handleDownloadCertificate = async (cert: any) => {
                 ) : (
                   <div className="space-y-3">
                     {myEvents.slice(0, 3).map(evt => (
-                      <div key={evt.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-between text-sm">
-                        <div>
-                          <div className="font-bold text-gray-900">{evt.title}</div>
-                          <div className="text-xs text-gray-500">{evt.date} • {evt.location}</div>
-                        </div>
-                        <span className="px-3 py-1 bg-emerald-50 text-emerald-700 font-bold rounded-lg text-xs">✓ Inscrit</span>
+                      <div key={evt.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
+                        <div className="font-bold text-gray-900 text-sm">{evt.title}</div>
+                        <div className="text-xs text-gray-500 mt-1">{evt.date}</div>
+                        <span className="inline-block mt-2 px-3 py-1 bg-emerald-50 text-emerald-700 font-bold rounded-lg text-xs">
+                          ✓ Inscrit
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -274,77 +483,62 @@ const handleDownloadCertificate = async (cert: any) => {
 
             </div>
 
-            {/* Colonne latérale */}
-            <div className="space-y-8">
-              
-              {/* Certificats - avec téléchargement direct */}
-              <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <Award className="w-5 h-5 text-amber-500" />
-                  <span>Certificats ({myCertificates.length})</span>
-                </h2>
-
-                {myCertificates.length === 0 ? (
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    Terminez un cours à 100% pour obtenir votre premier certificat.
-                  </p>
-                ) : (
-                 <div className="space-y-3">
-  {myCertificates.slice(0, 2).map(cert => (
-    <div key={cert.id} className="p-4 rounded-2xl bg-rose-50 border border-rose-100 space-y-2">
-      <div className="text-sm font-bold text-rose-700">{cert.courseTitle}</div>
-      <div className="text-xs text-gray-500">{cert.issueDate}</div>
-      <button
-        onClick={() => handleDownloadCertificate(cert)}
-        disabled={isDownloading === cert.id}
-        className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isDownloading === cert.id ? (
-          <>
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Téléchargement...</span>
-          </>
-        ) : (
-          <>
-            <Download className="w-4 h-4" />
-            <span>Télécharger</span>
-          </>
+          </div>
         )}
-     
-    </button>
-  </div>
-))}
-                  </div>
-                )}
-              </div>
 
-              {/* Statistiques */}
-              <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />
-                  <span>Statistiques</span>
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Formations suivies</span>
-                    <span className="font-bold text-gray-900">{myEnrollments.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Certificats obtenus</span>
-                    <span className="font-bold text-gray-900">{myCertificates.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Événements</span>
-                    <span className="font-bold text-gray-900">{myEvents.length}</span>
-                  </div>
+        {activeTabSection === 'certificates' && (
+          /* SECTION CERTIFICATS */
+          <div className="space-y-8">
+            {/* En-tête des certificats */}
+            <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <Award className="w-7 h-7 text-amber-500" />
+                    <span>Mes Certificats</span>
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {myCertificates.length} certificat{myCertificates.length > 1 ? 's' : ''} obtenu{myCertificates.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+                <div className="px-4 py-2 bg-amber-50 rounded-xl text-sm font-bold text-amber-700">
+                   Score moyen : {myCertificates.length > 0 
+                    ? Math.round(myCertificates.reduce((acc, c) => {
+                        const enrollment = myEnrollments.find(e => e.courseId === c.courseId);
+                        return acc + (enrollment?.overallScore || 0);
+                      }, 0) / myCertificates.length)
+                    : 0}%
                 </div>
               </div>
-
             </div>
 
+            {/* Liste des certificats */}
+            {myCertificates.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-sm">
+                <GraduationCap className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-700 mb-2">Aucun certificat pour le moment</h3>
+                <p className="text-gray-500 max-w-md mx-auto">
+                  Terminez une formation avec au moins 90% de réussite pour obtenir votre certificat.
+                </p>
+                <button
+                  onClick={() => setActiveTab('academy')}
+                  className="mt-6 px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm transition-colors"
+                >
+                  Explorer les formations
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {enrichedCertificates.map(cert => (
+                  <CertificateCard key={cert.id} cert={cert} />
+                ))}
+              </div>
+            )}
           </div>
-        ) : (
-          /* SETTINGS */
+        )}
+
+        {activeTabSection === 'settings' && (
+          /* SETTINGS - inchangé mais conservé */
           <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm max-w-3xl mx-auto">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">

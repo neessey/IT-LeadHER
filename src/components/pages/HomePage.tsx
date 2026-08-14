@@ -21,6 +21,7 @@ import {
   Instagram,
   PlayCircle
 } from 'lucide-react';
+import { div, section } from 'motion/react-client';
 
 export const HomePage: React.FC = () => {
   const {
@@ -159,98 +160,113 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* FEATURED COURSES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-1 h-6 bg-rose-600 rounded-full" />
-              <span className="text-sm font-bold uppercase tracking-wider text-rose-600">Académie E-learning</span>
+     {/* FEATURED COURSES */}
+<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+  <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-1 h-6 bg-rose-600 rounded-full" />
+        <span className="text-sm font-bold uppercase tracking-wider text-rose-600">Académie E-learning</span>
+      </div>
+      <h2 className="text-4xl font-extrabold text-gray-900">
+        Formations à Fort Impact
+      </h2>
+    </div>
+    <button
+      onClick={() => setActiveTab('academy')}
+      className="group inline-flex items-center gap-2 text-sm font-bold text-rose-600 hover:text-rose-700 transition-colors"
+    >
+      <span>Voir tout le catalogue</span>
+      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+    </button>
+  </div>
+
+  {courses.length === 0 ? (
+    <div className="text-center py-12">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-rose-100 flex items-center justify-center">
+        <BookOpen className="w-8 h-8 text-rose-400" />
+      </div>
+      <p className="text-gray-500">Aucune formation disponible pour le moment.</p>
+      <p className="text-sm text-gray-400 mt-1">Revenez bientôt !</p>
+    </div>
+  ) : (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {courses.slice(0, 3).map((course) => (
+        <div
+          key={course.id}
+          className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all hover:-translate-y-2 overflow-hidden"
+        >
+          <div className="relative h-52 overflow-hidden">
+            <img
+              src={course.thumbnail || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80'}
+              alt={course.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80';
+              }}
+            />
+            <div className="absolute top-4 left-4">
+              <span className="px-3 py-1 rounded-full bg-white/90 text-rose-600 font-bold text-xs uppercase shadow-sm">
+                {course.categoryLabel || course.category}
+              </span>
             </div>
-            <h2 className="text-4xl font-extrabold text-gray-900">
-              Formations Tech à Fort Impact
-            </h2>
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gray-900/80 text-white font-semibold text-xs">
+              {course.level || 'Débutant'}
+            </div>
           </div>
-          <button
-            onClick={() => setActiveTab('academy')}
-            className="group inline-flex items-center gap-2 text-sm font-bold text-rose-600 hover:text-rose-700 transition-colors"
-          >
-            <span>Voir tout le catalogue</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {featuredCourses.map((course) => (
-            <div
-              key={course.id}
-              className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all hover:-translate-y-2 overflow-hidden"
-            >
-              <div className="relative h-52 overflow-hidden">
-                <img
-                  src={course.thumbnail}
-                  alt={course.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 rounded-full bg-white/90 text-rose-600 font-bold text-xs uppercase shadow-sm">
-                    {course.categoryLabel}
-                  </span>
-                </div>
-                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-gray-900/80 text-white font-semibold text-xs">
-                  {course.level}
-                </div>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {course.duration}
-                  </span>
-                  <span className="flex items-center gap-1 text-amber-500 font-bold">
-                    ★ {course.rating}
-                    <span className="text-gray-400 font-normal">({course.enrolledCount})</span>
-                  </span>
-                </div>
-
-                <h3 className="text-lg font-bold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2">
-                  {course.title}
-                </h3>
-
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {course.description}
-                </p>
-
-                <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                  <img
-                    src={course.instructorAvatar}
-                    alt={course.instructorName}
-                    className="w-8 h-8 rounded-full object-cover border-2 border-rose-100"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{course.instructorName}</span>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={() => navigateToCourse(course.id)}
-                    className="flex-1 py-2.5 rounded-xl border-2 border-rose-200 text-rose-600 hover:bg-rose-50 text-sm font-bold transition-all"
-                  >
-                    Voir les leçons
-                  </button>
-                  <button
-                    onClick={() => enrollInCourse(course.id)}
-                    className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold shadow-sm transition-all"
-                  >
-                    S'inscrire
-                  </button>
-                </div>
-              </div>
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between text-sm text-gray-500">
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {course.duration || '8 semaines'}
+              </span>
+              <span className="flex items-center gap-1 text-amber-500 font-bold">
+                ★ {course.rating || 5.0}
+                <span className="text-gray-400 font-normal">({course.enrolledCount || 0})</span>
+              </span>
             </div>
-          ))}
-        </div>
-      </section>
 
+            <h3 className="text-lg font-bold text-gray-900 group-hover:text-rose-600 transition-colors line-clamp-2">
+              {course.title}
+            </h3>
+
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {course.description || course.fullDescription}
+            </p>
+
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+              <img
+                src={course.instructorAvatar || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'}
+                alt={course.instructorName}
+                className="w-8 h-8 rounded-full object-cover border-2 border-rose-100"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80';
+                }}
+              />
+              <span className="text-sm font-medium text-gray-700">{course.instructorName || 'IT-LeadHER'}</span>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => navigateToCourse(course.id)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-rose-200 text-rose-600 hover:bg-rose-50 text-sm font-bold transition-all"
+              >
+                Voir les leçons
+              </button>
+              <button
+                onClick={() => enrollInCourse(course.id)}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold shadow-sm transition-all"
+              >
+                S'inscrire
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
       {/* MENTORSHIP BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-rose-600 rounded-3xl p-12 overflow-hidden shadow-xl">
