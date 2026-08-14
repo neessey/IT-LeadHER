@@ -54,74 +54,6 @@ export const PartnersPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Partenaires */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1 h-6 bg-rose-600 rounded-full" />
-            <span className="text-sm font-bold uppercase tracking-wider text-rose-600">
-              Nos Partenaires ({partners.length})
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {partners.map(p => (
-              <div 
-                key={p.id} 
-                className="group bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:border-rose-200 hover:shadow-lg transition-all hover:-translate-y-1"
-              >
-                <div className="text-2xl font-black text-gray-900 mb-3">
-                  {p.logo}
-                </div>
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                  p.tier === 'Grand Partenaire' ? 'bg-amber-100 text-amber-800' :
-                  p.tier === 'Partenaire Majeur' ? 'bg-gray-200 text-gray-700' :
-                  'bg-rose-50 text-rose-600'
-                }`}>
-                  {p.tier}
-                </span>
-                <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-                  {p.description}
-                </p>
-                <a 
-                  href={p.website} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-rose-600 hover:text-rose-700 mt-3 transition-colors"
-                >
-                  <span>Visiter</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pourquoi nous rejoindre */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Pourquoi devenir partenaire ?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: Users, title: 'Visibilité', desc: 'Exposez votre marque à une communauté de femmes tech engagées.' },
-              { icon: Award, title: 'Impact', desc: 'Contribuez activement à la réduction de la fracture numérique.' },
-              { icon: Handshake, title: 'Talents', desc: 'Accédez à un vivier de talents qualifiés et diversifiés.' }
-            ].map((item, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-100 text-center">
-                <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Formulaire Devenir Partenaire */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div className="bg-white rounded-2xl border-2 border-rose-100 shadow-sm p-8 sm:p-12">
@@ -265,6 +197,31 @@ export const PartnersPage: React.FC = () => {
         </div>
       </section>
 
+
+      {/* Pourquoi nous rejoindre */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        <div className="bg-gray-50 rounded-2xl border border-gray-200 p-8">
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+            Pourquoi devenir partenaire ?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Users, title: 'Visibilité', desc: 'Exposez votre marque à une communauté de femmes tech engagées.' },
+              { icon: Award, title: 'Impact', desc: 'Contribuez activement à la réduction de la fracture numérique.' },
+              { icon: Handshake, title: 'Talents', desc: 'Accédez à un vivier de talents qualifiés et diversifiés.' }
+            ].map((item, idx) => (
+              <div key={idx} className="bg-white p-6 rounded-xl border border-gray-100 text-center">
+                <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                  <item.icon className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                <p className="text-sm text-gray-600 mt-1">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
     </div>
   );
 };

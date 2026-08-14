@@ -71,3 +71,26 @@
   }
 }
 
+/* Dans ton fichier CSS global ou dans tailwind.config.js */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-pause {
+  animation-play-state: paused;
+}
+
+/* Alternative plus fluide avec pause au survol */
+.group:hover .animate-marquee {
+  animation-play-state: paused;
+}

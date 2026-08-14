@@ -86,8 +86,16 @@ export const Footer: React.FC = () => {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
           <p>© {new Date().getFullYear()} IT-LeadHER Organization. Tous droits réservés.</p>
           <div className="flex items-center gap-4">
-            <a href="/privacy" className="hover:text-white hover:underline">Politique de Confidentialité</a>
-            <a href="/terms" className="hover:text-white hover:underline">Conditions d'Utilisation</a>
+             <button
+                  onClick={() => setActiveTab('privacy')}className="hover:text-white hover:underline"
+                  >
+                    Politique de Confidentialité
+                    </button>
+            <button
+                  onClick={() => setActiveTab('terms')}className="hover:text-white hover:underline"
+                  >
+                    Conditions d'Utilisation
+                    </button>
           </div>
         </div>
       </div>

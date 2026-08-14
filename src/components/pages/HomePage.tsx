@@ -424,31 +424,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* PARTNERS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <div className="space-y-8">
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-1 h-6 bg-rose-600 rounded-full" />
-            <span className="text-sm font-bold uppercase tracking-wider text-gray-400">
-              Ils soutiennent l'initiative IT-LeadHER
-            </span>
-          </div>
-          
-          <div className="flex flex-wrap items-center justify-center gap-12 md:gap-16">
-            {partners.map(p => (
-              <div 
-                key={p.id} 
-                className="text-lg font-bold text-gray-400 hover:text-rose-600 transition-all cursor-pointer hover:scale-110"
-              >
-                {p.logo}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-     
-
     </div>
   );
 };

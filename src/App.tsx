@@ -18,6 +18,9 @@ import { ContactPage } from './components/pages/ContactPage';
 import { AuthPage } from './components/pages/AuthPage';
 import { DashboardPage } from './components/pages/DashboardPage';
 import { AdminDashboardPage } from './components/pages/AdminDashboardPage';
+import { PrivacyPolicyPage } from './components/pages/PrivacyPolicyPage';
+import CGU from './components/pages/CGUPage';
+
 
 const AppContent: React.FC = () => {
   const { activeTab } = useApp();
@@ -49,6 +52,10 @@ const AppContent: React.FC = () => {
         return <DashboardPage />;
       case 'admin':
         return <AdminDashboardPage />;
+          case 'privacy':
+            return <PrivacyPolicyPage />;
+          case 'terms':
+            return <CGU />;
       default:
         return <HomePage />;
     }

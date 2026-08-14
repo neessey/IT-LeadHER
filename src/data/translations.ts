@@ -16,36 +16,83 @@ export const translations = {
       admin: "Admin",
       aiAssistant: "Assistant IA"
     },
-    hero: {
-      tagline: "ORGANISATION COMMUNAULTAIRE WOMEN IN TECH",
-      title: "Former aujourd'hui les leaders numériques de demain.",
-      subtitle: "IT-LeadHER accompagne les femmes et jeunes filles dans leur évolution numérique grâce à la formation de pointe, au mentorat personnalisé et à l'accès direct aux opportunités professionnelles.",
-      ctaPrimary: "Rejoindre IT-LeadHER",
-      ctaSecondary: "Découvrir nos programmes",
-      stat1: "Femmes formées",
-      stat2: "Mentors engagées",
-      stat3: "Événements organisés",
-      stat4: "Partenaires clés"
+  hero: {
+  tagline: "ASSOCIATION ÉTUDIANTE DE L'IUA • FEMMES & TECHNOLOGIE",
+
+  title: "Former aujourd'hui les femmes qui façonneront le numérique de demain.",
+
+  subtitle:
+    "IT-LeadHER est une association étudiante de l'Institut Universitaire d'Abidjan dédiée à l'accompagnement des étudiantes à travers la formation, le mentorat, la collaboration et les opportunités de développement dans les domaines du numérique et du leadership.",
+
+  ctaPrimary: "Rejoindre IT-LeadHER",
+
+  ctaSecondary: "Découvrir nos programmes",
+
+  stat1: "Étudiantes membres",
+
+  stat2: "Mentors",
+
+  stat3: "Activités organisées",
+
+  stat4: "Initiatives étudiantes"
+},
+   about: {
+  title: "À propos d'IT-LeadHER",
+
+  subtitle:
+    "Une association étudiante de l'Institut Universitaire d'Abidjan dédiée à l'accompagnement, au développement et à l'épanouissement des étudiantes dans le numérique et le leadership.",
+
+  historyTitle: "Notre Histoire",
+
+  historyText:
+    "IT-LeadHER est une association étudiante de l'Institut Universitaire d'Abidjan (IUA), née de la volonté de créer un espace où les étudiantes peuvent apprendre, partager leurs connaissances et développer leur potentiel. À travers des formations, des ateliers, des rencontres et des initiatives étudiantes, l'association contribue à renforcer la place des femmes dans les domaines du numérique, de l'innovation et du leadership au sein de la communauté IUA.",
+
+  missionTitle: "Notre Mission",
+
+  missionText:
+    "Accompagner les étudiantes de l'IUA dans le développement de leurs compétences, de leur confiance en elles et de leur leadership, en leur offrant un cadre favorable à l'apprentissage, au partage d'expériences, à l'entraide et à la découverte des opportunités du numérique.",
+
+  visionTitle: "Notre Vision",
+
+  visionText:
+    "Construire au sein de l'IUA une communauté dynamique de jeunes femmes compétentes, ambitieuses et engagées, capables de développer leurs talents, de porter des projets innovants et de devenir des actrices majeures de leur environnement professionnel et technologique.",
+
+  valuesTitle: "Nos Valeurs",
+
+  teamTitle: "L'Équipe Dirigeante",
+
+  values: {
+    inclusion: {
+      title: "Inclusion",
+      desc:
+        "Créer au sein de l'IUA un environnement accueillant où chaque étudiante peut trouver sa place, s'exprimer et progresser."
     },
-    about: {
-      title: "À propos d'IT-LeadHER",
-      subtitle: "Construire un écosystème tech inclusif et durable pour l'Afrique et le monde.",
-      historyTitle: "Notre Histoire",
-      historyText: "IT-LeadHER est née d'un constat simple mais frappant : bien que le secteur numérique connaisse une croissance exponentielle, les femmes y restent sous-représentées dans les postes techniques et de décision. Fondée par des passionnées du numérique, notre initiative s'impose aujourd'hui comme un catalyseur d'impact social et technologique.",
-      missionTitle: "Notre Mission",
-      missionText: "Donner aux femmes les compétences de pointe, la confiance en soi et le réseau d'influence nécessaires pour exceller et diriger dans la transformation numérique.",
-      visionTitle: "Notre Vision",
-      visionText: "Un monde où chaque femme disposant d'un potentiel numérique a les moyens d'accéder aux métiers du futur, de créer des innovations à fort impact et de siéger aux tables de décision.",
-      valuesTitle: "Nos Valeurs",
-      teamTitle: "L'Équipe Dirigeante",
-      values: {
-        inclusion: { title: "Inclusion", desc: "Créer un environnement accueillant où chaque parcours compte." },
-        leadership: { title: "Leadership", desc: "Inspirer et développer le potentiel de décision chez nos membres." },
-        innovation: { title: "Innovation", desc: "Adopter les technologies émergentes pour anticiper le futur." },
-        collaboration: { title: "Collaboration", desc: "Bâtir une sororité forte et solidaire au-delà des frontières." },
-        excellence: { title: "Excellence", desc: "Viser la plus haute qualité dans nos programmes académiques." }
-      }
+
+    leadership: {
+      title: "Leadership",
+      desc:
+        "Encourager chaque membre à développer sa confiance, son sens des responsabilités et sa capacité à prendre des initiatives."
     },
+
+    innovation: {
+      title: "Innovation",
+      desc:
+        "Encourager la créativité, la curiosité et l'utilisation des nouvelles technologies pour répondre aux défis de demain."
+    },
+
+    collaboration: {
+      title: "Collaboration",
+      desc:
+        "Favoriser l'entraide, le partage de connaissances et la création de liens forts entre les étudiantes de l'IUA."
+    },
+
+    excellence: {
+      title: "Excellence",
+      desc:
+        "Encourager chaque membre à viser la progression, la qualité et l'excellence dans son parcours académique et professionnel."
+    }
+  }
+},
     programs: {
       title: "Nos Programmes d'Accompagnement",
       subtitle: "Un parcours structuré de l'apprentissage technique jusqu'à l'accès au leadership et à l'entrepreneuriat.",
@@ -162,35 +209,82 @@ export const translations = {
       admin: "Admin",
       aiAssistant: "AI Assistant"
     },
-    hero: {
-      tagline: "WOMEN IN TECH INTERNATIONAL COMMUNITY",
-      title: "Training today the digital leaders of tomorrow.",
-      subtitle: "IT-LeadHER empowers women and young girls in tech through cutting-edge training, personalized mentorship, and direct access to career opportunities.",
-      ctaPrimary: "Join IT-LeadHER",
-      ctaSecondary: "Explore Programs",
-      stat1: "Women Trained",
-      stat2: "Active Mentors",
-      stat3: "Organized Events",
-      stat4: "Key Partners"
+  hero: {
+  tagline: "IUA STUDENT ASSOCIATION • WOMEN IN TECHNOLOGY",
+
+  title: "Empowering IUA's women to lead the digital future.",
+
+  subtitle:
+    "IT-LeadHER is a student association at Institut Universitaire d'Abidjan dedicated to empowering female students through training, mentorship, collaboration, and opportunities to grow in technology and leadership.",
+
+  ctaPrimary: "Join IT-LeadHER",
+
+  ctaSecondary: "Discover Our Programs",
+
+  stat1: "Female Students",
+
+  stat2: "Mentors",
+
+  stat3: "Events & Activities",
+
+  stat4: "Student Initiatives"
+},
+   about: {
+  title: "About IT-LeadHER",
+
+  subtitle:
+    "A student association at Institut Universitaire d'Abidjan dedicated to supporting, developing, and empowering female students in technology and leadership.",
+
+  historyTitle: "Our Story",
+
+  historyText:
+    "IT-LeadHER is a student association at Institut Universitaire d'Abidjan (IUA), created with the goal of providing a space where female students can learn, share knowledge, and develop their potential. Through training sessions, workshops, networking events, and student-led initiatives, the association contributes to strengthening the role of women in technology, innovation, and leadership within the IUA community.",
+
+  missionTitle: "Our Mission",
+
+  missionText:
+    "To support female students at IUA in developing their skills, confidence, and leadership abilities by providing an environment that encourages learning, knowledge sharing, peer support, and access to opportunities in the digital and technology sectors.",
+
+  visionTitle: "Our Vision",
+
+  visionText:
+    "To build a dynamic community of skilled, ambitious, and engaged young women at IUA, empowered to develop their talents, lead innovative projects, and become key contributors to their professional and technological environments.",
+
+  valuesTitle: "Our Values",
+
+  teamTitle: "Our Leadership Team",
+
+  values: {
+    inclusion: {
+      title: "Inclusion",
+      desc:
+        "Creating a welcoming environment at IUA where every female student can find her place, express herself, and grow."
     },
-    about: {
-      title: "About IT-LeadHER",
-      subtitle: "Building an inclusive and sustainable tech ecosystem across Africa and worldwide.",
-      historyTitle: "Our Story",
-      historyText: "IT-LeadHER was born from a key observation: while the tech sector expands rapidly, women remain underrepresented in technical and executive roles. Founded by passionate tech women, our movement stands as a catalyst for social impact and technical excellence.",
-      missionTitle: "Our Mission",
-      missionText: "Equip women with top-tier technical skills, self-confidence, and professional networks to excel and lead in the digital era.",
-      visionTitle: "Our Vision",
-      visionText: "A world where every woman with digital potential has the tools to access future tech careers, create high-impact innovations, and hold decision-making seats.",
-      valuesTitle: "Our Core Values",
-      teamTitle: "Leadership Team",
-      values: {
-        inclusion: { title: "Inclusion", desc: "Creating a welcoming environment where every background matters." },
-        leadership: { title: "Leadership", desc: "Inspiring and developing executive potential in our members." },
-        innovation: { title: "Innovation", desc: "Embracing emerging technologies to shape the future." },
-        collaboration: { title: "Collaboration", desc: "Building a strong sisterhood across international borders." },
-        excellence: { title: "Excellence", desc: "Striving for top quality in all our educational curricula." }
-      }
+
+    leadership: {
+      title: "Leadership",
+      desc:
+        "Encouraging every member to build confidence, develop a sense of responsibility, and take initiative."
+    },
+
+    innovation: {
+      title: "Innovation",
+      desc:
+        "Encouraging creativity, curiosity, and the use of emerging technologies to address the challenges of tomorrow."
+    },
+
+    collaboration: {
+      title: "Collaboration",
+      desc:
+        "Promoting mutual support, knowledge sharing, and strong connections among female students at IUA."
+    },
+
+    excellence: {
+      title: "Excellence",
+      desc:
+        "Encouraging every member to pursue growth, quality, and excellence throughout her academic and professional journey."
+    }
+  }
     },
     programs: {
       title: "Our Development Programs",

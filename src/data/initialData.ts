@@ -175,42 +175,25 @@ Grâce aux API ouvertes et aux modèles légers applicables sur mobile, les dév
 ];
 
 export const initialPartners: Partner[] = [
-  {
-    id: 'part-1',
-    name: 'TechAfrique Group',
-    logo: '🌐 TechAfrique',
-    category: 'Tech',
-    tier: 'Grand Partenaire',
-    description: 'Leader des solutions logicielles et cloud sur le continent africain, soutien officiel du programme d\'incubation IT-LeadHER.',
-    website: 'https://techafrique.example.com'
-  },
-  {
-    id: 'part-2',
-    name: 'Global Innovation Foundation',
-    logo: '🏛️ Global Foundation',
-    category: 'Institutionnel',
-    tier: 'Grand Partenaire',
-    description: 'Organisation internationale œuvrant pour l\'inclusion numérique des femmes et le développement durable.',
-    website: 'https://globalfoundation.example.org'
-  },
-  {
-    id: 'part-3',
-    name: 'Ecole Supérieure Polytechnique',
-    logo: '🎓 ESP Digital',
-    category: 'Éducation',
-    tier: 'Partenaire Majeur',
-    description: 'Partenaire académique pour la certification et le partage de ressources pédagogiques.',
-    website: 'https://esp.example.edu'
-  },
-  {
-    id: 'part-4',
-    name: 'CyberShield Systems',
-    logo: '🛡️ CyberShield',
-    category: 'Tech',
-    tier: 'Sponsor',
-    description: 'Entreprise spécialisée dans la cybersécurité offrant des bourses d\'études complètes aux apprenantes.',
-    website: 'https://cybershield.example.com'
-  }
+{
+  id: 'part-1',
+  name: 'IUA - Institut Universitaire d\'Abidjan',
+  photo: '/assets/iua.jpeg',
+  category: 'Institutionnel',
+  tier: 'Institution de rattachement',
+  description: 'Institut Universitaire d\'Abidjan, établissement au sein duquel IT-LeadHER développe ses activités et accompagne les étudiantes dans les domaines du numérique et du leadership.',
+  website: 'https://www.iua.ci'
+},
+{
+  id: 'part-2',
+  name: 'REDIS - Réseau Estudiantin des Informaticiens',
+  photo: '/assets/redis.jpeg',
+  category: 'Communauté étudiante',
+  tier: 'Partenaire étudiant',
+  description: 'Réseau Estudiantin des Informaticiens de l\'IUA, une communauté dédiée aux passionnés d\'informatique et de technologie à travers des projets, ateliers, événements et initiatives étudiantes.',
+  website: '#'
+},
+  
 ];
 
 export const initialTestimonials: Testimonial[] = [

@@ -185,11 +185,11 @@ export interface Article {
 export interface Partner {
   id: string;
   name: string;
-  logo: string;
-  category: 'Tech' | 'Institutionnel' | 'Éducation' | 'Entreprise';
+  photo: string;
+  category: 'Tech' | 'Institutionnel' | 'Éducation' | 'Entreprise'| 'Communauté étudiante';
   description: string;
   website: string;
-  tier: 'Grand Partenaire' | 'Partenaire Majeur' | 'Sponsor';
+  tier: 'Grand Partenaire' | 'Partenaire Majeur' | 'Sponsor'| 'Partenaire étudiant' | 'Institution de rattachement';
 }
 
 export interface Testimonial {

@@ -126,11 +126,9 @@ export const AboutPage: React.FC = () => {
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p className="text-base">{t.about.historyText}</p>
               <p className="text-base">
-                Aujourd'hui, IT-LeadHER rassemble des milliers de femmes, d'étudiantes,
-                d'ingénieures et de dirigeantes à travers le monde, unis autour d'un
-                objectif commun : briser les barrières et former les leaders de la
-                révolution numérique.
-              </p>
+Aujourd'hui, IT-LeadHER rassemble les étudiantes de l'IUA autour d'une même ambition :
+apprendre, progresser, partager et développer leur potentiel dans les
+domaines du numérique, de l'innovation et du leadership.              </p>
             </div>
 
             <div className="flex flex-wrap gap-6 pt-4">
@@ -173,6 +171,145 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
       </section>
+{/* PARTENAIRES & INSTITUTIONS */}
+<section className="relative py-16 overflow-hidden bg-gradient-to-br from-white via-rose-50/30 to-white border-y border-rose-100/50">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    {/* En-tête avec titre et badge */}
+    <div className="flex flex-col items-center text-center mb-10">
+      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200/50 mb-3">
+        <Handshake className="w-4 h-4 text-rose-500" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-rose-600">
+          Nos Institutions & Partenaires
+        </span>
+      </div>
+      <h3 className="text-2xl font-bold text-gray-800">
+        Ils nous font confiance
+      </h3>
+      <p className="text-sm text-gray-500 mt-1">
+        Des partenaires engagés pour l'insertion des femmes dans la tech
+      </p>
+    </div>
+
+    {/* Bande défilante avec pause au survol */}
+    <div className="relative overflow-hidden">
+   
+      {/* Conteneur de la bande */}
+      <div className="flex overflow-hidden group">
+        <div className="flex animate-marquee group-hover:animate-marquee-pause items-center gap-16 py-6">
+          
+          {/* ITEMS - 1ère série */}
+          <div className="flex items-center gap-16 shrink-0">
+            {/* Logo IUA */}
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/iua.jpeg"
+                  alt="Institut Universitaire d'Abidjan"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">IUA</span>
+            </div>
+
+            {/* Logo REDIS */}
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-black shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/redis.jpeg"
+                  alt="REDIS"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">REDIS</span>
+            </div>
+
+
+             {/* Logo IUA */}
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/iua.jpeg"
+                  alt="Institut Universitaire d'Abidjan"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">IUA</span>
+            </div>
+
+            {/* Logo REDIS */}
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-black shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/redis.jpeg"
+                  alt="REDIS"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">REDIS</span>
+            </div>
+
+          </div>
+
+          {/* DUPLICATION pour effet infini - 2ème série */}
+          <div className="flex items-center gap-16 shrink-0">
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/iua.jpeg"
+                  alt="Institut Universitaire d'Abidjan"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">IUA</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-black shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/redis.jpeg"
+                  alt="REDIS"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">REDIS</span>
+            </div>
+
+            
+
+           {/* Logo IUA */}
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-white shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/iua.jpeg"
+                  alt="Institut Universitaire d'Abidjan"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">IUA</span>
+            </div>
+
+            {/* Logo REDIS */}
+            <div className="flex flex-col items-center gap-2 transition-all duration-300 hover:scale-110">
+              <div className="w-24 h-24 rounded-2xl bg-black shadow-md border border-gray-100 flex items-center justify-center p-4 hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="/assets/redis.jpeg"
+                  alt="REDIS"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">REDIS</span>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+ 
+  </div>
+</section>
 
       {/* MISSION & VISION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
@@ -226,7 +363,7 @@ export const AboutPage: React.FC = () => {
             {t.about.teamTitle}
           </h2>
           <p className="text-gray-600 mt-3">
-            Des femmes inspirantes qui portent la vision d'IT-LeadHER
+            Des étudiantes engagées qui contribuent au développement d'IT-LeadHER au sein de l'IUA
           </p>
         </div>
 
@@ -301,8 +438,9 @@ export const AboutPage: React.FC = () => {
             </h2>
             
             <p className="text-rose-100 text-base leading-relaxed">
-              Rejoignez une communauté de femmes qui façonnent le monde de demain.
-              Que vous soyez débutante ou experte, votre place est ici.
+             Rejoignez IT-LeadHER et participez à la vie associative de l'IUA.
+Développez vos compétences, partagez vos connaissances et construisez
+votre réseau avec d'autres étudiantes passionnées.
             </p>
             
             
