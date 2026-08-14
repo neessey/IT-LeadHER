@@ -586,7 +586,6 @@ export const AdminDashboardPage: React.FC = () => {
               <tr key={c.id} className="hover:bg-rose-50 transition-colors">
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <img src={c.thumbnail} alt={c.title} className="w-12 h-12 rounded-lg object-cover border border-rose-200" />
                     <div className="font-bold text-gray-900">{c.title}</div>
                   </div>
                 </td>
@@ -624,12 +623,12 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="overflow-x-auto rounded-2xl border border-rose-200">
           <table className="w-full text-left text-sm">
             <thead className="bg-rose-50 text-rose-600 uppercase text-xs font-extrabold tracking-wider">
-              <tr><th className="p-4">Titre</th><th className="p-4">Format</th><th className="p-4">Date</th><th className="p-4">Inscriptions</th><th className="p-4 text-right">Actions</th></tr>
+              <tr><th className="p-4">Titre</th><th className="p-4">Type</th><th className="p-4">Date</th><th className="p-4">Inscriptions</th><th className="p-4 text-right">Actions</th></tr>
             </thead>
             <tbody className="divide-y divide-rose-100">
               {events.map(e => (
                 <tr key={e.id} className="hover:bg-rose-50 transition-colors">
-                  <td className="p-4"><div className="flex items-center gap-3"><img src={e.image} alt={e.title} className="w-12 h-12 rounded-lg object-cover border border-rose-200" /><div className="font-bold text-gray-900">{e.title}</div></div></td>
+                  <td className="p-4"><div className="flex items-center gap-3"><div className="font-bold text-gray-900">{e.title}</div></div></td>
                   <td className="p-4"><span className="px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-extrabold">{e.typeLabel}</span></td>
                   <td className="p-4 text-gray-700">{e.date}</td>
                   <td className="p-4 font-bold text-gray-900">{e.registeredCount} / {e.maxCapacity}</td>
@@ -666,7 +665,7 @@ export const AdminDashboardPage: React.FC = () => {
             <tbody className="divide-y divide-rose-100">
               {articles.map(a => (
                 <tr key={a.id} className="hover:bg-rose-50 transition-colors">
-                  <td className="p-4"><div className="flex items-center gap-3"><img src={a.cover} alt={a.title} className="w-12 h-12 rounded-lg object-cover border border-rose-200" /><div className="font-bold text-gray-900 max-w-xs truncate">{a.title}</div></div></td>
+                  <td className="p-4"><div className="flex items-center gap-3"><img src={a.cover} alt={a.title} className="w-9 h-9  rounded-lg object-cover border border-rose-200" /><div className="font-bold text-gray-900 max-w-xs truncate">{a.title}</div></div></td>
                   <td className="p-4 text-rose-500 font-bold">{a.category}</td>
                   <td className="p-4 text-gray-700">{a.authorName}</td>
                   <td className="p-4 text-gray-700 font-bold">{a.comments.length}</td>

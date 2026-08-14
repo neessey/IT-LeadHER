@@ -110,7 +110,7 @@ export const initialEvents: Event[] = [
     title: 'Hackathon Women Tech Code Challenge',
     description: '48 heures non-stop pour concevoir et développer des solutions numériques durables face aux défis sociaux actuels.',
     type: 'hackathon',
-    typeLabel: 'Hackathon 48H',
+    typeLabel: 'Hackathon',
     date: '24-26 Novembre 2026',
     time: 'Vendredi 18h - Dimanche 18h',
     location: 'Hub d\'Innovation IT-LeadHER & Discord Server',
